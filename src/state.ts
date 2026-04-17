@@ -57,7 +57,7 @@ export function getRenderableOptions(question?: AskQuestion): RenderOption[] {
 		return [];
 	}
 	const options: RenderOption[] = [...question.options];
-	if (question.allowOther) {
+	if (question.type !== "preview" && question.allowOther) {
 		options.push({
 			value: OTHER_VALUE,
 			label: "Type your own",

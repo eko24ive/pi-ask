@@ -83,7 +83,7 @@ Use it when the agent needs structured clarification before proceeding.
       id: string,
       label?: string,
       prompt: string,
-      type?: "single" | "multi" | "code-review",
+      type?: "single" | "multi" | "preview",
       allowOther?: boolean,
       required?: boolean, // metadata only; submit is never blocked
       options: [
@@ -150,6 +150,7 @@ The current prototype supports:
 - tabbed multi-question flow
 - single-select questions
 - multi-select questions
+- preview questions with a dedicated preview pane and no `Type your own` fallback
 - fixed `Type your own` fallback option that preserves typed text when dismissed
 - number-key quick selection
 - final submit/review page

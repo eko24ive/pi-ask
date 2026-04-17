@@ -23,11 +23,7 @@ export const AskQuestionSchema = Type.Object({
 	prompt: Type.String({ description: "Full question prompt" }),
 	type: Type.Optional(
 		Type.Union(
-			[
-				Type.Literal("single"),
-				Type.Literal("multi"),
-				Type.Literal("code-review"),
-			],
+			[Type.Literal("single"), Type.Literal("multi"), Type.Literal("preview")],
 			{ description: "Question type" },
 		),
 	),

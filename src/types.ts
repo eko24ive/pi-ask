@@ -1,4 +1,4 @@
-export type AskQuestionType = "single" | "multi" | "code-review";
+export type AskQuestionType = "single" | "multi" | "preview";
 
 export interface AskOption {
 	value: string;

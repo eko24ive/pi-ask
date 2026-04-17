@@ -223,57 +223,16 @@ export async function runAskFlow(
 			if (isSubmitTab(state)) {
 				renderSubmit(lines, state, theme, width);
 			} else if (question) {
-				add(` ${theme.fg("text", question.prompt)}`);
-				add();
-
-				const isMulti = question.type === "multi";
-				const answer = getAnswer(state, question.id);
-				for (let i = 0; i < options.length; i++) {
-					const option = options[i];
-					const selected = i === state.optionIndex;
-					const isAnsweredOption = option.isOther
-						? !!answer?.customText
-						: !!answer?.values.includes(option.value);
-					const pointer = selected ? theme.fg("accent", "❯ ") : "  ";
-					const prefix =
-						isMulti && !option.isOther
-							? `[${isAnsweredOption ? "x" : " "}] `
-							: "";
-					const optionColor = isAnsweredOption
-						? "success"
-						: selected
-							? "accent"
-							: "text";
-					add(
-						`${pointer}${theme.fg(optionColor, `${i + 1}. ${prefix}${option.label}`)}`,
-					);
-					if (option.description) {
-						add(`     ${theme.fg("muted", option.description)}`);
-					}
-					if (question.type === "code-review" && selected && option.preview) {
-						add();
-						for (const previewLine of option.preview.split("\n")) {
-							add(`     ${theme.fg("dim", previewLine)}`);
-						}
-						add();
-					}
-					if (option.isOther && selected && state.mode === "input") {
-						for (const editorLine of editor.render(Math.max(8, width - 7))) {
-							add(`     ${renderInputLine(editorLine, width - 5, theme)}`);
-						}
-						add(
-							`     ${theme.fg("dim", `${newLineHint} newline · Enter submit · Esc save and close`)}`,
-						);
-					}
-					if (option.isOther && state.mode !== "input") {
-						const customText = answer?.customText;
-						if (customText) {
-							for (const customLine of customText.split("\n")) {
-								add(`     ${theme.fg("muted", customLine)}`);
-							}
-						}
-					}
-				}
+				renderQuestionContent({
+					lines,
+					state,
+					question,
+					options,
+					theme,
+					width,
+					editor,
+					newLineHint,
+				});
 			}
 
 			const footer = renderFooter(state, theme);
@@ -363,6 +322,295 @@ function renderSubmit(
 			`${prefix}${theme.fg(selected ? "accent" : "text", `${i + 1}. ${options[i]}`)}`,
 		);
 	}
+}
+
+function renderQuestionContent(args: {
+	lines: string[];
+	state: AskState;
+	question: NonNullable<ReturnType<typeof getCurrentQuestion>>;
+	options: ReturnType<typeof getRenderableOptions>;
+	theme: ExtensionContext["ui"]["theme"];
+	width: number;
+	editor: Editor;
+	newLineHint: string;
+}) {
+	const { lines, state, question, options, theme, width, editor, newLineHint } =
+		args;
+
+	renderQuestionPrompt(lines, question.prompt, theme, width);
+
+	if (question.type === "preview") {
+		renderPreviewQuestion(
+			lines,
+			state,
+			question,
+			options,
+			theme,
+			width,
+			editor,
+			newLineHint,
+		);
+		return;
+	}
+
+	renderStandardQuestion(
+		lines,
+		state,
+		question,
+		options,
+		theme,
+		width,
+		editor,
+		newLineHint,
+	);
+}
+
+function renderQuestionPrompt(
+	lines: string[],
+	prompt: string,
+	theme: ExtensionContext["ui"]["theme"],
+	width: number,
+) {
+	lines.push(truncateToWidth(` ${theme.fg("text", prompt)}`, width));
+	lines.push("");
+}
+
+function renderStandardQuestion(
+	lines: string[],
+	state: AskState,
+	question: NonNullable<ReturnType<typeof getCurrentQuestion>>,
+	options: ReturnType<typeof getRenderableOptions>,
+	theme: ExtensionContext["ui"]["theme"],
+	width: number,
+	editor: Editor,
+	newLineHint: string,
+) {
+	const add = (text = "") => lines.push(truncateToWidth(text, width));
+	const isMulti = question.type === "multi";
+	const answer = getAnswer(state, question.id);
+	for (let i = 0; i < options.length; i++) {
+		const option = options[i];
+		const selected = i === state.optionIndex;
+		const isAnsweredOption = option.isOther
+			? !!answer?.customText
+			: !!answer?.values.includes(option.value);
+		const pointer = selected ? theme.fg("accent", "❯ ") : "  ";
+		const prefix =
+			isMulti && !option.isOther ? `[${isAnsweredOption ? "x" : " "}] ` : "";
+		const optionColor = isAnsweredOption
+			? "success"
+			: selected
+				? "accent"
+				: "text";
+		add(
+			`${pointer}${theme.fg(optionColor, `${i + 1}. ${prefix}${option.label}`)}`,
+		);
+		if (option.description) {
+			add(`     ${theme.fg("muted", option.description)}`);
+		}
+		if (option.isOther && selected && state.mode === "input") {
+			for (const editorLine of editor.render(Math.max(8, width - 7))) {
+				add(`     ${renderInputLine(editorLine, width - 5, theme)}`);
+			}
+			add(
+				`     ${theme.fg("dim", `${newLineHint} newline · Enter submit · Esc save and close`)}`,
+			);
+		}
+		if (option.isOther && state.mode !== "input") {
+			const customText = answer?.customText;
+			if (customText) {
+				for (const customLine of customText.split("\n")) {
+					add(`     ${theme.fg("muted", customLine)}`);
+				}
+			}
+		}
+	}
+}
+
+function renderPreviewQuestion(
+	lines: string[],
+	state: AskState,
+	question: NonNullable<ReturnType<typeof getCurrentQuestion>>,
+	options: ReturnType<typeof getRenderableOptions>,
+	theme: ExtensionContext["ui"]["theme"],
+	width: number,
+	editor: Editor,
+	newLineHint: string,
+) {
+	const add = (text = "") => lines.push(truncateToWidth(text, width));
+	const selectedOption = options[state.optionIndex];
+	const wideLayout = width >= 90 && options.length > 0;
+
+	const answer = getAnswer(state, question.id);
+	if (wideLayout) {
+		const leftWidth = measurePreviewLeftWidth(options, width);
+		const rightWidth = Math.max(24, width - leftWidth - 2);
+		const leftPane = renderPreviewOptionList(
+			state,
+			question,
+			options,
+			theme,
+			leftWidth,
+		);
+		const rightPane = renderPreviewPane(selectedOption, theme, rightWidth);
+		for (const line of mergeColumns(leftPane, rightPane, leftWidth, width)) {
+			add(line);
+		}
+	} else {
+		renderPreviewOptionList(state, question, options, theme, width).forEach(
+			add,
+		);
+		add("");
+		renderPreviewPane(selectedOption, theme, width).forEach(add);
+	}
+
+	if (selectedOption?.isOther && state.mode === "input") {
+		add("");
+		for (const editorLine of editor.render(Math.max(8, width - 7))) {
+			add(`     ${renderInputLine(editorLine, width - 5, theme)}`);
+		}
+		add(
+			`     ${theme.fg("dim", `${newLineHint} newline · Enter submit · Esc save and close`)}`,
+		);
+	}
+
+	if (selectedOption?.isOther && state.mode !== "input" && answer?.customText) {
+		add("");
+		for (const customLine of answer.customText.split("\n")) {
+			add(` ${theme.fg("muted", customLine)}`);
+		}
+	}
+}
+
+function renderPreviewOptionList(
+	state: AskState,
+	question: NonNullable<ReturnType<typeof getCurrentQuestion>>,
+	options: ReturnType<typeof getRenderableOptions>,
+	theme: ExtensionContext["ui"]["theme"],
+	width: number,
+): string[] {
+	const lines: string[] = [];
+	const add = (text = "") => lines.push(truncateToWidth(text, width));
+	const answer = getAnswer(state, question.id);
+	for (let i = 0; i < options.length; i++) {
+		const option = options[i];
+		const selected = i === state.optionIndex;
+		const isAnsweredOption = option.isOther
+			? !!answer?.customText
+			: !!answer?.values.includes(option.value);
+		const pointer = selected ? theme.fg("accent", "❯ ") : "  ";
+		const optionColor = isAnsweredOption
+			? "success"
+			: selected
+				? "accent"
+				: "text";
+		add(`${pointer}${theme.fg(optionColor, `${i + 1}. ${option.label}`)}`);
+		if (option.description) {
+			add(`     ${theme.fg("muted", option.description)}`);
+		}
+	}
+	return lines;
+}
+
+function renderPreviewPane(
+	selectedOption: ReturnType<typeof getRenderableOptions>[number] | undefined,
+	theme: ExtensionContext["ui"]["theme"],
+	width: number,
+): string[] {
+	const paneWidth = Math.max(10, width);
+	if (!selectedOption) {
+		return renderBox(
+			[theme.fg("dim", "No preview available")],
+			paneWidth,
+			theme,
+		);
+	}
+
+	const content: string[] = [];
+	content.push(theme.fg("accent", theme.bold(selectedOption.label)));
+	if (selectedOption.description) {
+		content.push(theme.fg("muted", selectedOption.description));
+	}
+	if (selectedOption.preview) {
+		if (content.length) {
+			content.push("");
+		}
+		for (const previewLine of selectedOption.preview.split("\n")) {
+			content.push(theme.fg("text", previewLine));
+		}
+	} else {
+		if (content.length) {
+			content.push("");
+		}
+		content.push(theme.fg("dim", "No preview available"));
+	}
+
+	return renderBox(content, paneWidth, theme);
+}
+
+function renderBox(
+	content: string[],
+	width: number,
+	theme: ExtensionContext["ui"]["theme"],
+): string[] {
+	const boxWidth = Math.max(10, width);
+	const innerWidth = Math.max(4, boxWidth - 2);
+	const top = theme.fg("accent", `┌${"─".repeat(innerWidth)}┐`);
+	const bottom = theme.fg("accent", `└${"─".repeat(innerWidth)}┘`);
+	const lines = [top];
+	for (const rawLine of content) {
+		const line = truncateToWidth(rawLine, innerWidth);
+		const padding = " ".repeat(Math.max(0, innerWidth - visibleWidth(line)));
+		lines.push(
+			theme.fg("accent", "│") + line + padding + theme.fg("accent", "│"),
+		);
+	}
+	lines.push(bottom);
+	return lines;
+}
+
+function mergeColumns(
+	left: string[],
+	right: string[],
+	leftWidth: number,
+	width: number,
+): string[] {
+	const lines: string[] = [];
+	const rowCount = Math.max(left.length, right.length);
+	for (let index = 0; index < rowCount; index++) {
+		const leftLine = left[index] ?? "";
+		const rightLine = right[index] ?? "";
+		const paddedLeft = padToVisibleWidth(leftLine, leftWidth);
+		lines.push(truncateToWidth(`${paddedLeft}  ${rightLine}`, width));
+	}
+	return lines;
+}
+
+function padToVisibleWidth(text: string, width: number): string {
+	return text + " ".repeat(Math.max(0, width - visibleWidth(text)));
+}
+
+function measurePreviewLeftWidth(
+	options: ReturnType<typeof getRenderableOptions>,
+	width: number,
+): number {
+	let widest = 0;
+	for (let i = 0; i < options.length; i++) {
+		const option = options[i];
+		const labelWidth = visibleWidth(`${i + 1}. ${option.label}`);
+		const descriptionWidth = option.description
+			? visibleWidth(option.description)
+			: 0;
+		widest = Math.max(widest, labelWidth, descriptionWidth);
+	}
+
+	const preferred = widest + 4;
+	const maxWidth = Math.min(34, Math.floor(width * 0.34));
+	return clamp(preferred, 22, Math.max(22, maxWidth));
+}
+
+function clamp(value: number, min: number, max: number): number {
+	return Math.min(max, Math.max(min, value));
 }
 
 function renderFooter(

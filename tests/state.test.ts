@@ -62,6 +62,28 @@ test("normalize defaults via initial state", () => {
 	);
 });
 
+test("preview questions keep their type and option previews", () => {
+	const state = createInitialState({
+		questions: [
+			{
+				id: "preview",
+				label: "Preview",
+				prompt: "What layout?",
+				type: "preview",
+				options: [{ value: "a", label: "Option A", preview: "Example" }],
+			},
+		],
+	});
+
+	assert.equal(state.questions[0].type, "preview");
+	assert.equal(state.questions[0].options[0].preview, "Example");
+	assert.equal(
+		getRenderableOptions(state.questions[0]).at(-1)?.isOther,
+		undefined,
+	);
+	assert.equal(getRenderableOptions(state.questions[0]).length, 1);
+});
+
 test("single-select number shortcut stores answer and advances to next tab", () => {
 	let state = createInitialState(sampleParams());
 	state = applyNumberShortcut(state, 2);
