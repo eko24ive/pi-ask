@@ -5,6 +5,7 @@ import { renderResultText } from "./result.ts";
 import { AskParamsSchema } from "./schema.ts";
 import { createInitialState, summarizeResult, toAskResult } from "./state.ts";
 import type { AskParams, AskQuestionInput, AskResult } from "./types.ts";
+import { UI_DIMENSIONS } from "./ui/constants.ts";
 
 export function registerAskTool(pi: ExtensionAPI) {
 	pi.registerTool({
@@ -63,7 +64,10 @@ export function registerAskTool(pi: ExtensionAPI) {
 			let text = theme.fg("toolTitle", theme.bold("ask_user "));
 			text += theme.fg("muted", `${params.questions?.length ?? 0} question(s)`);
 			if (labels) {
-				text += theme.fg("dim", ` (${truncateToWidth(labels, 50)})`);
+				text += theme.fg(
+					"dim",
+					` (${truncateToWidth(labels, UI_DIMENSIONS.callLabelTruncateWidth)})`,
+				);
 			}
 			return new Text(text, 0, 0);
 		},

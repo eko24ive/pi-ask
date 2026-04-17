@@ -28,7 +28,20 @@ export interface AskQuestion
 	required: boolean;
 }
 
-export interface AskAnswer {
+export interface AskSelectedOption {
+	value: string;
+	label: string;
+	index: number;
+}
+
+export interface AskStateAnswer {
+	selected: AskSelectedOption[];
+	customText?: string;
+	note?: string;
+	optionNotes?: Record<string, string>;
+}
+
+export interface AskResultAnswer {
 	values: string[];
 	labels: string[];
 	indices: number[];
@@ -46,26 +59,40 @@ export interface AskResult {
 		prompt: string;
 		type: AskQuestionType;
 	}>;
-	answers: Record<string, AskAnswer>;
+	answers: Record<string, AskResultAnswer>;
 }
 
-export type ViewMode = "navigate" | "input" | "note" | "submit";
+export type ViewState =
+	| { kind: "navigate" }
+	| { kind: "submit" }
+	| { kind: "input"; questionId: string }
+	| { kind: "note"; questionId: string; optionValue?: string };
 
 export interface AskState {
 	title?: string;
 	questions: AskQuestion[];
-	currentTab: number;
-	optionIndex: number;
-	submitIndex: number;
-	mode: ViewMode;
-	inputQuestionId: string | null;
-	noteQuestionId: string | null;
-	noteOptionValue: string | null;
-	answers: Record<string, AskAnswer>;
+	activeTabIndex: number;
+	activeOptionIndex: number;
+	activeSubmitActionIndex: number;
+	view: ViewState;
+	answers: Record<string, AskStateAnswer>;
 	completed: boolean;
 	cancelled: boolean;
 }
 
-export interface RenderOption extends AskOption {
-	isOther?: boolean;
+export interface AskDisplayOption extends AskOption {
+	isCustomOption?: boolean;
 }
+
+export type AskAction =
+	| { type: "MOVE_TAB"; delta: 1 | -1 }
+	| { type: "MOVE_OPTION"; delta: 1 | -1 }
+	| { type: "OPEN_INPUT"; questionId: string }
+	| { type: "OPEN_QUESTION_NOTE"; questionId: string }
+	| { type: "OPEN_OPTION_NOTE"; questionId: string; optionValue: string }
+	| { type: "CONFIRM" }
+	| { type: "TOGGLE_MULTI" }
+	| { type: "NUMBER_SHORTCUT"; digit: number }
+	| { type: "SAVE_INPUT"; value: string; submit?: boolean }
+	| { type: "SAVE_NOTE"; value: string }
+	| { type: "CANCEL" };

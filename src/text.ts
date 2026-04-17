@@ -2,41 +2,35 @@ import { visibleWidth } from "@mariozechner/pi-tui";
 
 export function wrapText(text: string, width: number): string[] {
 	const effectiveWidth = Math.max(1, width);
-	const lines: string[] = [];
-	const paragraphs = text.split("\n");
-
-	for (const paragraph of paragraphs) {
-		if (paragraph.length === 0) {
-			lines.push("");
-			continue;
-		}
-
-		const leadingWhitespace = paragraph.match(/^\s*/)?.[0] ?? "";
-		const body = paragraph.slice(leadingWhitespace.length).trim();
-		if (!body) {
-			lines.push(leadingWhitespace);
-			continue;
-		}
-
-		const wrapped = wrapParagraph(
-			body,
-			effectiveWidth - visibleWidth(leadingWhitespace),
+	const lines = text
+		.split("\n")
+		.flatMap((paragraph) =>
+			wrapParagraphWithIndentation(paragraph, effectiveWidth),
 		);
-		if (wrapped.length === 0) {
-			lines.push(leadingWhitespace);
-			continue;
-		}
-
-		for (const [index, part] of wrapped.entries()) {
-			lines.push(
-				index === 0
-					? `${leadingWhitespace}${part}`
-					: `${leadingWhitespace}${part}`,
-			);
-		}
-	}
 
 	return lines.length > 0 ? lines : [""];
+}
+
+function wrapParagraphWithIndentation(
+	paragraph: string,
+	width: number,
+): string[] {
+	if (paragraph.length === 0) {
+		return [""];
+	}
+
+	const leadingWhitespace = paragraph.match(/^\s*/)?.[0] ?? "";
+	const body = paragraph.slice(leadingWhitespace.length).trim();
+	if (!body) {
+		return [leadingWhitespace];
+	}
+
+	const wrapped = wrapParagraph(body, width - visibleWidth(leadingWhitespace));
+	if (wrapped.length === 0) {
+		return [leadingWhitespace];
+	}
+
+	return wrapped.map((part) => `${leadingWhitespace}${part}`);
 }
 
 function wrapParagraph(text: string, width: number): string[] {

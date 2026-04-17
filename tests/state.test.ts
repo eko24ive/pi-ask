@@ -7,11 +7,11 @@ import {
 	createInitialState,
 	enterOptionNoteMode,
 	enterQuestionNoteMode,
-	saveCustomAnswer,
-	saveNote,
 	getRenderableOptions,
 	moveOption,
 	moveTab,
+	saveCustomAnswer,
+	saveNote,
 	submitCustomAnswer,
 	toAskResult,
 	toggleCurrentMultiOption,
@@ -63,7 +63,10 @@ test("normalize defaults via initial state", () => {
 		getRenderableOptions(state.questions[0]).at(-1)?.label,
 		"Type your own",
 	);
-	assert.equal(getRenderableOptions(state.questions[0]).at(-1)?.isOther, true);
+	assert.equal(
+		getRenderableOptions(state.questions[0]).at(-1)?.isCustomOption,
+		true,
+	);
 });
 
 test("preview questions keep their type and option previews", () => {
@@ -82,7 +85,7 @@ test("preview questions keep their type and option previews", () => {
 	assert.equal(state.questions[0].type, "preview");
 	assert.equal(state.questions[0].options[0].preview, "Example");
 	assert.equal(
-		getRenderableOptions(state.questions[0]).at(-1)?.isOther,
+		getRenderableOptions(state.questions[0]).at(-1)?.isCustomOption,
 		undefined,
 	);
 	assert.equal(getRenderableOptions(state.questions[0]).length, 1);
@@ -92,31 +95,37 @@ test("single-select number shortcut stores answer and advances to next tab", () 
 	let state = createInitialState(sampleParams());
 	state = applyNumberShortcut(state, 2);
 
-	assert.equal(state.answers.lang.labels[0], "TypeScript");
-	assert.equal(state.currentTab, 1);
-	assert.equal(state.mode, "navigate");
+	assert.equal(state.answers.lang.selected[0].label, "TypeScript");
+	assert.equal(state.activeTabIndex, 1);
+	assert.equal(state.view.kind, "navigate");
 });
 
 test("multi-select space toggles current option and enter advances to submit", () => {
 	let state = createInitialState(sampleParams());
 	state = applyNumberShortcut(state, 1);
 	state = toggleCurrentMultiOption(state);
-	assert.deepEqual(state.answers.fe.labels, ["React"]);
+	assert.deepEqual(
+		state.answers.fe.selected.map((selection) => selection.label),
+		["React"],
+	);
 
 	state = moveOption(state, 1);
 	state = toggleCurrentMultiOption(state);
-	assert.deepEqual(state.answers.fe.labels, ["React", "Vue"]);
+	assert.deepEqual(
+		state.answers.fe.selected.map((selection) => selection.label),
+		["React", "Vue"],
+	);
 
 	state = confirmCurrentSelection(state);
-	assert.equal(state.mode, "submit");
-	assert.equal(state.currentTab, 2);
+	assert.equal(state.view.kind, "submit");
+	assert.equal(state.activeTabIndex, 2);
 	assert.equal(state.completed, false);
 });
 
 test("submit can complete even when some questions are unanswered", () => {
 	let state = createInitialState(sampleParams());
 	state = moveTab(state, -1);
-	assert.equal(state.mode, "submit");
+	assert.equal(state.view.kind, "submit");
 	state = confirmCurrentSelection(state);
 
 	assert.equal(state.completed, true);
@@ -135,11 +144,11 @@ test("selecting other enters input mode and custom submit stores typed answer", 
 	});
 
 	state = applyNumberShortcut(state, 2);
-	assert.equal(state.mode, "input");
+	assert.equal(state.view.kind, "input");
 	state = submitCustomAnswer(state, "my custom answer");
 
 	assert.equal(state.answers.q1.customText, "my custom answer");
-	assert.equal(state.mode, "submit");
+	assert.equal(state.view.kind, "submit");
 });
 
 test("escape saves typed custom answer without advancing", () => {
@@ -154,11 +163,11 @@ test("escape saves typed custom answer without advancing", () => {
 	});
 
 	state = applyNumberShortcut(state, 2);
-	assert.equal(state.mode, "input");
+	assert.equal(state.view.kind, "input");
 	state = saveCustomAnswer(state, "my draft answer");
 
-	assert.equal(state.mode, "navigate");
-	assert.equal(state.currentTab, 0);
+	assert.equal(state.view.kind, "navigate");
+	assert.equal(state.activeTabIndex, 0);
 	assert.equal(state.answers.q1.customText, "my draft answer");
 });
 
@@ -182,7 +191,7 @@ test("empty custom draft clears the stored answer but preserves notes", () => {
 
 	assert.equal(state.answers.q1.customText, undefined);
 	assert.equal(state.answers.q1.note, "question note");
-	assert.equal(state.mode, "navigate");
+	assert.equal(state.view.kind, "navigate");
 });
 
 test("question note can be saved without selecting an answer and is submitted", () => {
@@ -193,10 +202,10 @@ test("question note can be saved without selecting an answer and is submitted", 
 	});
 
 	state = enterQuestionNoteMode(state, "q1");
-	assert.equal(state.mode, "note");
+	assert.equal(state.view.kind, "note");
 	state = saveNote(state, "needs examples");
 
-	assert.equal(state.mode, "navigate");
+	assert.equal(state.view.kind, "navigate");
 	assert.equal(state.answers.q1.note, "needs examples");
 	assert.deepEqual(toAskResult(state).answers.q1, {
 		values: [],
@@ -229,10 +238,16 @@ test("option notes can exist before selection but only selected option notes are
 	assert.equal(toAskResult(state).answers.q1, undefined);
 
 	state = toggleCurrentMultiOption(state);
-	assert.deepEqual(state.answers.q1.values, ["react"]);
+	assert.deepEqual(
+		state.answers.q1.selected.map((selection) => selection.value),
+		["react"],
+	);
 	state = moveOption(state, 1);
 	state = toggleCurrentMultiOption(state);
-	assert.deepEqual(state.answers.q1.values, ["react", "vue"]);
+	assert.deepEqual(
+		state.answers.q1.selected.map((selection) => selection.value),
+		["react", "vue"],
+	);
 	assert.deepEqual(toAskResult(state).answers.q1.optionNotes, {
 		vue: "maybe later",
 	});
@@ -309,12 +324,12 @@ test("preview questions can store selected option notes for submission", () => {
 test("tab navigation wraps including submit tab", () => {
 	let state = createInitialState(sampleParams());
 	state = moveTab(state, -1);
-	assert.equal(state.currentTab, 2);
-	assert.equal(state.mode, "submit");
+	assert.equal(state.activeTabIndex, 2);
+	assert.equal(state.view.kind, "submit");
 
 	state = moveTab(state, 1);
-	assert.equal(state.currentTab, 0);
-	assert.equal(state.mode, "navigate");
+	assert.equal(state.activeTabIndex, 0);
+	assert.equal(state.view.kind, "navigate");
 });
 
 test("tab navigation works with a single question", () => {
@@ -325,12 +340,12 @@ test("tab navigation works with a single question", () => {
 	});
 
 	state = moveTab(state, -1);
-	assert.equal(state.currentTab, 1);
-	assert.equal(state.mode, "submit");
+	assert.equal(state.activeTabIndex, 1);
+	assert.equal(state.view.kind, "submit");
 
 	state = moveTab(state, 1);
-	assert.equal(state.currentTab, 0);
-	assert.equal(state.mode, "navigate");
+	assert.equal(state.activeTabIndex, 0);
+	assert.equal(state.view.kind, "navigate");
 });
 
 test("escape cancels from main flow but only exits input and note modes when editing", () => {
@@ -345,14 +360,14 @@ test("escape cancels from main flow but only exits input and note modes when edi
 		],
 	});
 	state = applyNumberShortcut(state, 2);
-	assert.equal(state.mode, "input");
+	assert.equal(state.view.kind, "input");
 	state = cancelFlow(state);
-	assert.equal(state.mode, "navigate");
+	assert.equal(state.view.kind, "navigate");
 	assert.equal(state.cancelled, false);
 
 	state = enterQuestionNoteMode(state, "q");
-	assert.equal(state.mode, "note");
+	assert.equal(state.view.kind, "note");
 	state = cancelFlow(state);
-	assert.equal(state.mode, "navigate");
+	assert.equal(state.view.kind, "navigate");
 	assert.equal(state.cancelled, false);
 });
