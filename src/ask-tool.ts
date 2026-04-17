@@ -12,6 +12,13 @@ export function registerAskTool(pi: ExtensionAPI) {
 		label: "Ask User",
 		description:
 			"Ask the user one or more structured questions when clarification is required. Supports single-select, multi-select, and preview questions. Use `preview` when an option needs a dedicated preview pane (for example, code, layout, or configuration previews). Return the selected answers as structured data instead of guessing.",
+		promptSnippet:
+			"Ask the user structured clarification questions and return the answers as structured data",
+		promptGuidelines: [
+			"Use this tool when requirements are ambiguous or when user preferences materially affect implementation.",
+			"Ask 1-3 concise questions instead of guessing.",
+			"Prefer short labels and 2-4 clear options per question.",
+		],
 		parameters: AskParamsSchema,
 
 		async execute(_toolCallId, params: AskParams, _signal, _onUpdate, ctx) {
