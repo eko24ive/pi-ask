@@ -4,9 +4,7 @@
 
 It lets an agent pause, ask structured questions in a terminal UI, and continue with normalized answers instead of guessing.
 
-<video src="docs/media/ask-user-demo.mp4" controls muted playsinline width="900">
-  Your browser does not support embedded video playback.
-</video>
+https://github.com/user-attachments/assets/a74827fb-6093-412a-895f-69f9514bc4fe
 
 ## Install
 
@@ -22,10 +20,10 @@ pi install git:github.com/eko24ive/pi-ask
 
 ### Screenshots
 
-| | |
-| --- | --- |
-| ![](docs/media/ask-user-question-flow.png) | ![](docs/media/ask-user-custom-answer.png) |
-| ![](docs/media/ask-user-notes.png) | ![](docs/media/ask-user-review.png) |
+| | | |
+| --- | --- | --- |
+| ![](docs/media/ask-user-single.png) | ![](docs/media/ask-user-multi.png) | ![](docs/media/ask-user-preview.png) |
+| ![](docs/media/ask-user-notes.png) | ![](docs/media/ask-user-review.png) | |
 
 ## Features
 
