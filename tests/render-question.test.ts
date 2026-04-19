@@ -19,13 +19,13 @@ function mockTheme() {
 	} as never;
 }
 
-function mockEditor(text = "") {
+function mockEditor(text = "", renderedLines?: string[]) {
 	return {
 		getText() {
 			return text;
 		},
 		render() {
-			return [];
+			return renderedLines ?? [];
 		},
 	} as never;
 }
@@ -56,7 +56,7 @@ test("custom option stays labeled before selection", () => {
 	assert(!lines.some((line) => line.includes("Type your answer...")));
 });
 
-test("selected custom option becomes inline input", () => {
+test("selected custom option keeps its label and renders editor below", () => {
 	let state = createInitialState({
 		questions: [
 			{
@@ -70,7 +70,7 @@ test("selected custom option becomes inline input", () => {
 
 	const lines: string[] = [];
 	renderQuestionScreen({
-		editor: mockEditor(""),
+		editor: mockEditor("", ["┌────┐", "", "└────┘"]),
 		lines,
 		options: getRenderableOptions(state.questions[0]),
 		question: state.questions[0],
@@ -79,6 +79,40 @@ test("selected custom option becomes inline input", () => {
 		width: 80,
 	});
 
+	assert(lines.some((line) => line.includes("Type your own")));
 	assert(lines.some((line) => line.includes("Type your answer...")));
-	assert(!lines.some((line) => line.includes("Type your own answer")));
+});
+
+test("selected multiline custom option renders full editor block", () => {
+	let state = createInitialState({
+		questions: [
+			{
+				id: "q1",
+				prompt: "Pick one",
+				options: [{ value: "a", label: "A" }],
+			},
+		],
+	});
+	state = applyNumberShortcut(state, 2);
+
+	const lines: string[] = [];
+	renderQuestionScreen({
+		editor: mockEditor("first line\nsecond line", [
+			"┌────┐",
+			"first line",
+			"second line",
+			"└────┘",
+		]),
+		lines,
+		options: getRenderableOptions(state.questions[0]),
+		question: state.questions[0],
+		state,
+		theme: mockTheme(),
+		width: 80,
+	});
+
+	assert(lines.some((line) => line.includes("Type your own")));
+	assert(lines.some((line) => line.includes("first line")));
+	assert(lines.some((line) => line.includes("second line")));
+	assert(!lines.some((line) => line.includes("first line second line")));
 });

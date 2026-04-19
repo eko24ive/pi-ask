@@ -15,7 +15,6 @@ import {
 	mergeColumns,
 	pushWrappedText,
 	renderEditorBlock,
-	renderInputLine,
 	renderPreviewPaneContent,
 } from "./render-helpers.ts";
 import type {
@@ -436,25 +435,21 @@ function renderInteractiveCustomOption(
 	optionColor: ReturnType<typeof getOptionColor>
 ) {
 	const { lines, editor, theme, width } = context;
-	const label = `${index + 1}. ${prefix}`;
-	const availableWidth = Math.max(
-		1,
-		width - visibleWidth(pointer) - visibleWidth(label)
+	pushWrappedText(
+		lines,
+		`${index + 1}. ${prefix}Type your own`,
+		width,
+		theme,
+		optionColor,
+		pointer,
+		" ".repeat(visibleWidth(pointer))
 	);
-	const text = editor.getText().replace(/\n/g, " ");
-	const hasText = text.trim().length > 0;
-	const inputText = hasText ? text : UI_TEXT.editorPlaceholderInput;
-	const inputColor = hasText ? "text" : "muted";
-	lines.push(
-		truncateToWidth(
-			`${pointer}${theme.fg(optionColor, label)}${renderInputLine(
-				inputText,
-				availableWidth,
-				theme,
-				inputColor
-			)}`,
-			width
-		)
+	renderIndentedEditor(
+		lines,
+		editor,
+		width,
+		theme,
+		UI_TEXT.editorPlaceholderInput
 	);
 }
 

@@ -63,7 +63,6 @@ export function renderEditorBlock(args: {
 		availableWidth,
 		placeholder,
 		placeholderColor = "muted",
-		contentColor = "text",
 		isEmpty = false,
 	} = args;
 	const innerLines =
@@ -87,16 +86,45 @@ export function renderEditorBlock(args: {
 	for (const editorLine of innerLines) {
 		lines.push(
 			truncateToWidth(
-				`${indent}${renderInputLine(
-					editorLine,
-					availableWidth,
-					theme,
-					contentColor
-				)}`,
+				`${indent}${renderEditorLine(editorLine, availableWidth, theme)}`,
 				width
 			)
 		);
 	}
+}
+
+function renderEditorLine(
+	line: string,
+	availableWidth: number,
+	theme: Theme
+): string {
+	const innerWidth = Math.max(4, availableWidth - 2);
+	const truncated = truncateToWidth(line, innerWidth);
+	const padding = " ".repeat(Math.max(0, innerWidth - visibleWidth(truncated)));
+	return renderPersistentBackground(
+		`${truncated}${padding}`,
+		theme,
+		"selectedBg"
+	);
+}
+
+function renderPersistentBackground(
+	text: string,
+	theme: Theme,
+	background: "selectedBg"
+): string {
+	const marker = "__PI_BG_MARKER__";
+	const wrappedMarker = theme.bg(background, marker);
+	const markerIndex = wrappedMarker.indexOf(marker);
+	if (markerIndex === -1) {
+		return theme.bg(background, ` ${text} `);
+	}
+
+	const prefix = wrappedMarker.slice(0, markerIndex);
+	const suffix = wrappedMarker.slice(markerIndex + marker.length);
+	const ansiReset = "\u001b[0m";
+	const reopenedText = text.split(ansiReset).join(`${ansiReset}${prefix}`);
+	return `${prefix} ${reopenedText} ${suffix}`;
 }
 
 export function renderBox(
