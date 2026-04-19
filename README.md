@@ -150,13 +150,18 @@ The returned `details.answers[questionId]` object may include:
 
 Behavior details:
 
+- payloads are validated before the UI opens: question ids must be unique, option values must be unique within a question, and required text fields must not be blank
+- preview questions require preview text for every option
+- `required` defaults to `false` and remains advisory only
 - question-level notes are submitted whenever authored
 - option notes can be authored for any active option during the UI flow
 - only notes for currently selected options are included in the submitted result
 - deselecting an option keeps its note in UI state, so re-selecting it restores the note
 - empty note text clears the note
+- on single-select questions, saving a free-form answer replaces selected options for that question
 - on multi-select questions, saving a free-form answer keeps other selected options intact
-- on multi-select questions, submitted `values` and `labels` include both selected options and the free-form answer when both exist
+- on multi-select questions, submitted `values` and `labels` keep selected options first and append the free-form answer last when both exist
+- unanswered questions are omitted from `details.answers`
 - when the free-form option is selected, it becomes an inline input row with the selected-tab background style spanning the full width
 - while editing a note or free-form answer, arrow keys and `Tab` stay inside the editor so the typing cursor can move naturally
 - free-form answer editors support pi-style `@` file path autocomplete for quickly mentioning project files
@@ -164,6 +169,8 @@ Behavior details:
 - `Ctrl+C` dismisses the entire ask flow immediately, even from note/free-form editing, without saving the current draft
 - use `n` for the active option note and `Shift+N` for the current question note
 - `Space` toggles the active option on single-select questions too, but does not auto-advance
+
+If pi runs without UI, `ask_user` returns a `Needs user input` message plus normalized pending questions in `details.questions` so a caller can re-ask them manually.
 
 ## Local development
 

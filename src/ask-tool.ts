@@ -25,24 +25,26 @@ export function registerAskTool(pi: ExtensionAPI) {
 		parameters: AskParamsSchema,
 
 		async execute(_toolCallId, params: AskParams, _signal, _onUpdate, ctx) {
+			const validation = validateParams(params);
+			if (!validation.ok) {
+				return {
+					content: [{ type: "text", text: `Error: ${validation.error}` }],
+					details: errorResultDetails(params, true),
+				};
+			}
+
 			if (!ctx.hasUI) {
-				const details = errorResultDetails(params, true);
 				return {
 					content: [
 						{
 							type: "text",
-							text: "Error: UI not available (running in non-interactive mode)",
+							text: formatNonInteractiveMessage(validation.state),
 						},
 					],
-					details,
-				};
-			}
-
-			if (!params.questions?.length) {
-				const details = errorResultDetails(params, true);
-				return {
-					content: [{ type: "text", text: "Error: No questions provided" }],
-					details,
+					details: {
+						...toAskResult(validation.state),
+						cancelled: true,
+					},
 				};
 			}
 
@@ -105,4 +107,47 @@ function errorResultDetails(params: AskParams, cancelled: boolean): AskResult {
 			answers: {},
 		};
 	}
+}
+
+function validateParams(
+	params: AskParams
+):
+	| { ok: true; state: ReturnType<typeof createInitialState> }
+	| { ok: false; error: string } {
+	try {
+		return {
+			ok: true,
+			state: createInitialState(params),
+		};
+	} catch (error) {
+		return {
+			ok: false,
+			error:
+				error instanceof Error ? error.message : "Invalid ask_user payload",
+		};
+	}
+}
+
+function formatNonInteractiveMessage(
+	state: ReturnType<typeof createInitialState>
+): string {
+	const lines = [
+		"Needs user input: ask_user requires interactive UI.",
+		"Run same tool call in interactive session, or ask user these questions manually:",
+	];
+
+	for (const [index, question] of state.questions.entries()) {
+		lines.push(`${index + 1}. ${question.label}: ${question.prompt}`);
+		for (const option of question.options) {
+			lines.push(`   - ${option.label} [${option.value}]`);
+		}
+		if (question.type !== "preview") {
+			lines.push("   - Type your own [custom]");
+		}
+	}
+
+	lines.push(
+		"details.questions contains normalized pending questions. details.answers stays empty until user responds."
+	);
+	return lines.join("\n");
 }

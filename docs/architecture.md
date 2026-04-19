@@ -53,7 +53,8 @@ The codebase is split so the implementation reads through file boundaries and na
 
 - submit is never blocked by unanswered questions
 - single-select answers serialize as arrays
-- free-form answers replace selected options for that question
+- single-select free-form answers replace selected options for that question
+- multi-select free-form answers augment selected options instead of clearing them
 - preview questions do not get the synthetic custom-answer option
 - deselected option notes stay in UI state
 - only selected option notes are emitted in the final result

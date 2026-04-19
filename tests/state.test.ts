@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createInitialState } from "../src/state/create.ts";
+
+const DUPLICATE_QUESTION_ID_RE = /duplicate question id "scope"/;
+const DUPLICATE_OPTION_VALUE_RE = /duplicate option value "small"/;
+const PREVIEW_REQUIRED_RE =
+	/preview questions require preview text for every option/;
+
 import { toAskResult } from "../src/state/result.ts";
 import { getRenderableOptions } from "../src/state/selectors.ts";
 import {
@@ -59,7 +65,7 @@ test("normalize defaults via initial state", () => {
 
 	assert.equal(state.questions[0].label, "Q1");
 	assert.equal(state.questions[0].type, "single");
-	assert.equal(state.questions[0].required, true);
+	assert.equal(state.questions[0].required, false);
 	assert.equal(
 		getRenderableOptions(state.questions[0]).at(-1)?.label,
 		"Type your own"
@@ -90,6 +96,92 @@ test("preview questions keep their type and option previews", () => {
 		undefined
 	);
 	assert.equal(getRenderableOptions(state.questions[0]).length, 1);
+});
+
+test("createInitialState rejects duplicate question ids", () => {
+	assert.throws(
+		() =>
+			createInitialState({
+				questions: [
+					{
+						id: "scope",
+						prompt: "What scope?",
+						options: [{ value: "small", label: "Small" }],
+					},
+					{
+						id: "scope",
+						prompt: "What tone?",
+						options: [{ value: "direct", label: "Direct" }],
+					},
+				],
+			}),
+		DUPLICATE_QUESTION_ID_RE
+	);
+});
+
+test("createInitialState rejects duplicate option values within one question", () => {
+	assert.throws(
+		() =>
+			createInitialState({
+				questions: [
+					{
+						id: "scope",
+						prompt: "What scope?",
+						options: [
+							{ value: "small", label: "Small" },
+							{ value: "small", label: "Also small" },
+						],
+					},
+				],
+			}),
+		DUPLICATE_OPTION_VALUE_RE
+	);
+});
+
+test("preview questions require preview text for every option", () => {
+	assert.throws(
+		() =>
+			createInitialState({
+				questions: [
+					{
+						id: "layout",
+						prompt: "Pick layout",
+						type: "preview",
+						options: [{ value: "compact", label: "Compact" }],
+					},
+				],
+			}),
+		PREVIEW_REQUIRED_RE
+	);
+});
+
+test("normalize trims ids, prompts, and option text", () => {
+	const state = createInitialState({
+		questions: [
+			{
+				id: "  scope  ",
+				label: "  Scope  ",
+				prompt: "  What scope?  ",
+				options: [
+					{
+						value: "  small  ",
+						label: "  Small  ",
+						description: "  Lowest risk  ",
+					},
+				],
+			},
+		],
+	});
+
+	assert.equal(state.questions[0].id, "scope");
+	assert.equal(state.questions[0].label, "Scope");
+	assert.equal(state.questions[0].prompt, "What scope?");
+	assert.deepEqual(state.questions[0].options[0], {
+		value: "small",
+		label: "Small",
+		description: "Lowest risk",
+		preview: undefined,
+	});
 });
 
 test("single-select number shortcut stores answer and advances to next tab", () => {
