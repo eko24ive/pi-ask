@@ -21,19 +21,35 @@ function inputState() {
 	return state;
 }
 
-test("editing views let up and down move navigation", () => {
+test("typing mode delegates arrow keys to the editor", () => {
 	const input = inputState();
+
 	assert.deepEqual(getInputCommand(input, "\x1b[A"), {
-		kind: "editMoveOption",
-		delta: -1,
+		kind: "delegateToEditor",
 	});
 	assert.deepEqual(getInputCommand(input, "\x1b[B"), {
-		kind: "editMoveOption",
-		delta: 1,
+		kind: "delegateToEditor",
+	});
+	assert.deepEqual(getInputCommand(input, "\x1b[C"), {
+		kind: "delegateToEditor",
+	});
+	assert.deepEqual(getInputCommand(input, "\x1b[D"), {
+		kind: "delegateToEditor",
 	});
 });
 
-test("note editing views let up and down move navigation", () => {
+test("typing mode delegates tab to the editor", () => {
+	const input = inputState();
+
+	assert.deepEqual(getInputCommand(input, "\t"), {
+		kind: "delegateToEditor",
+	});
+	assert.deepEqual(getInputCommand(input, "\x1b[Z"), {
+		kind: "delegateToEditor",
+	});
+});
+
+test("note editing mode delegates arrows and tab to the editor", () => {
 	const state = enterQuestionNoteMode(
 		createInitialState({
 			questions: [
@@ -48,11 +64,18 @@ test("note editing views let up and down move navigation", () => {
 	);
 
 	assert.deepEqual(getInputCommand(state, "\x1b[A"), {
-		kind: "editMoveOption",
-		delta: -1,
+		kind: "delegateToEditor",
 	});
 	assert.deepEqual(getInputCommand(state, "\x1b[B"), {
-		kind: "editMoveOption",
-		delta: 1,
+		kind: "delegateToEditor",
+	});
+	assert.deepEqual(getInputCommand(state, "\x1b[C"), {
+		kind: "delegateToEditor",
+	});
+	assert.deepEqual(getInputCommand(state, "\x1b[D"), {
+		kind: "delegateToEditor",
+	});
+	assert.deepEqual(getInputCommand(state, "\t"), {
+		kind: "delegateToEditor",
 	});
 });

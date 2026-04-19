@@ -16,8 +16,8 @@ export const UI_TEXT = {
 	reviewTitle: "Review your answers",
 	readyToSubmit: "Ready to submit your answers?",
 	unanswered: "→ (unanswered)",
-	footerInput: " Enter submit · Esc save and close · Tab/←→ save and navigate",
-	footerNote: " Enter save · Esc save and close · Tab/←→ save and navigate",
+	footerInput: " Enter submit · Esc save and close",
+	footerNote: " Enter save · Esc save and close",
 	footerSubmit: " ↑↓ select · Enter confirm · Esc cancel",
 	footerMulti:
 		" ⇆ tab · ↑↓ select · Space toggle · Enter continue · N option note · Ctrl+N question note · Esc dismiss · 1-9 quick toggle",

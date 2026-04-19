@@ -102,7 +102,8 @@ Editing flow:
 
 - `Enter`: save and submit the current input
 - `Esc`: save draft and close the editor
-- `Up`, `Down`, `Tab`, `Shift+Tab`: save draft and continue navigation
+- arrow keys and `Tab` stay in the editor so the cursor can move while typing
+- navigation resumes only after closing the editor with `Esc`
 
 ## Non-interactive mode
 

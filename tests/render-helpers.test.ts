@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { renderEditorBlock } from "../src/ui/render-helpers.ts";
+import {
+	renderEditorBlock,
+	renderFooterText,
+} from "../src/ui/render-helpers.ts";
 
 const ABC_PATTERN = /abc/;
 const BORDER_PATTERN = /┌|└/;
@@ -68,4 +71,9 @@ test("renderEditorBlock reapplies background after editor reset sequences", () =
 	assert.equal(lines.length, 1);
 	assert.match(lines[0], SELECTED_BG_PATTERN);
 	assert(lines[0].includes("\x1b[0m{selectedBg}"));
+});
+
+test("editing footers do not advertise tab navigation", () => {
+	assert.equal(renderFooterText("input"), " Enter submit · Esc save and close");
+	assert.equal(renderFooterText("note"), " Enter save · Esc save and close");
 });
