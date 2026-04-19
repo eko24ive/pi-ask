@@ -94,6 +94,7 @@ Main flow:
 - `Up`, `Down`: move between options
 - `Enter`: confirm or submit
 - `Esc`: cancel the flow
+- `Ctrl+C`: dismiss the entire flow immediately, even while editing a note or free-form answer
 - `1..9`: select or toggle the matching option
 - `Space`: toggle the active option
 - `N`: edit the active option note
@@ -103,6 +104,7 @@ Editing flow:
 
 - `Enter`: save and submit the current input
 - `Esc`: save draft and close the editor
+- `Ctrl+C`: dismiss the entire flow immediately without saving the current editor draft
 - arrow keys and `Tab` stay in the editor so the cursor can move while typing
 - navigation resumes only after closing the editor with `Esc`
 

@@ -163,6 +163,7 @@ Behavior details:
 - while editing a note or free-form answer, arrow keys and `Tab` stay inside the editor so the typing cursor can move naturally
 - free-form answer editors support pi-style `@` file path autocomplete for quickly mentioning project files
 - `Esc` closes the editor and returns to navigation mode
+- `Ctrl+C` dismisses the entire ask flow immediately, even from note/free-form editing, without saving the current draft
 - `Space` toggles the active option on single-select questions too, but does not auto-advance
 
 ## Local development

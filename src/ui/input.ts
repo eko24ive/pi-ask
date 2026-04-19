@@ -11,6 +11,7 @@ export type AskInputCommand =
 	| { kind: "openOptionNote" }
 	| { kind: "confirm" }
 	| { kind: "cancel" }
+	| { kind: "dismiss" }
 	| { kind: "numberShortcut"; digit: number }
 	| { kind: "editMoveTab"; delta: 1 | -1 }
 	| { kind: "editMoveOption"; delta: 1 | -1 }
@@ -22,6 +23,10 @@ export function getInputCommand(
 	state: AskState,
 	data: string
 ): AskInputCommand {
+	if (matchesKey(data, Key.ctrl("c"))) {
+		return { kind: "dismiss" };
+	}
+
 	if (state.view.kind === "input" || state.view.kind === "note") {
 		return getEditingInputCommand(data);
 	}

@@ -241,6 +241,11 @@ export function cancelFlow(state: AskState): AskState {
 	};
 }
 
+export function dismissFlow(state: AskState): AskState {
+	const nextState = cancelFlow(state);
+	return nextState.completed ? nextState : cancelFlow(nextState);
+}
+
 function saveInputValue(
 	state: AskState,
 	rawValue: string,

@@ -14,6 +14,7 @@ import {
 	applyNumberShortcut,
 	cancelFlow,
 	confirmCurrentSelection,
+	dismissFlow,
 	enterInputMode,
 	enterOptionNoteMode,
 	enterQuestionNoteMode,
@@ -117,6 +118,11 @@ function handleEditingCommand(
 	command: AskInputCommand,
 	data: string
 ) {
+	if (command.kind === "dismiss") {
+		commitNavigation(controller, dismissFlow(controller.state));
+		maybeFinish(controller);
+		return;
+	}
 	if (command.kind === "editMoveTab") {
 		controller.state = saveEditorAndMoveTab(controller, command.delta);
 		syncInputModeWithSelection(controller);
@@ -175,6 +181,10 @@ function handleNavigationCommand(
 				controller,
 				applyNumberShortcut(controller.state, command.digit)
 			);
+			return;
+		case "dismiss":
+			commitNavigation(controller, dismissFlow(controller.state));
+			maybeFinish(controller);
 			return;
 		case "ignore":
 		case "editMoveTab":

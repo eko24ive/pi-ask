@@ -7,6 +7,7 @@ import {
 	applyNumberShortcut,
 	cancelFlow,
 	confirmCurrentSelection,
+	dismissFlow,
 	enterOptionNoteMode,
 	enterQuestionNoteMode,
 	moveOption,
@@ -472,4 +473,28 @@ test("escape cancels from main flow but only exits input and note modes when edi
 	state = cancelFlow(state);
 	assert.equal(state.view.kind, "navigate");
 	assert.equal(state.cancelled, false);
+});
+
+test("dismissFlow cancels the tool even from editing modes", () => {
+	let state = createInitialState({
+		questions: [
+			{ id: "q", prompt: "Q?", options: [{ value: "a", label: "A" }] },
+		],
+	});
+	state = applyNumberShortcut(state, 2);
+	assert.equal(state.view.kind, "input");
+	state = dismissFlow(state);
+	assert.equal(state.cancelled, true);
+	assert.equal(state.completed, true);
+
+	state = createInitialState({
+		questions: [
+			{ id: "q", prompt: "Q?", options: [{ value: "a", label: "A" }] },
+		],
+	});
+	state = enterQuestionNoteMode(state, "q");
+	assert.equal(state.view.kind, "note");
+	state = dismissFlow(state);
+	assert.equal(state.cancelled, true);
+	assert.equal(state.completed, true);
 });

@@ -79,3 +79,27 @@ test("note editing mode delegates arrows and tab to the editor", () => {
 		kind: "delegateToEditor",
 	});
 });
+
+test("ctrl+c dismisses the flow from both navigation and editing modes", () => {
+	const navigation = createInitialState({
+		questions: [
+			{
+				id: "q1",
+				prompt: "Question?",
+				options: [{ value: "a", label: "A" }],
+			},
+		],
+	});
+	const input = inputState();
+	const note = enterQuestionNoteMode(navigation, "q1");
+
+	assert.deepEqual(getInputCommand(navigation, "\u0003"), {
+		kind: "dismiss",
+	});
+	assert.deepEqual(getInputCommand(input, "\u0003"), {
+		kind: "dismiss",
+	});
+	assert.deepEqual(getInputCommand(note, "\u0003"), {
+		kind: "dismiss",
+	});
+});
