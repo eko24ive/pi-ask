@@ -1,6 +1,6 @@
 {
   "name": "@eko24ive/pi-ask",
-  "version": "0.0.0-development",
+  "version": "0.1.0",
   "description": "Pi package that adds an interactive ask_user clarification tool.",
   "license": "MIT",
   "type": "module",
