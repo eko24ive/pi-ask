@@ -1,3 +1,11 @@
+# [0.5.0](https://github.com/eko24ive/pi-ask/compare/v0.4.0...v0.5.0) (2026-04-24)
+
+
+### Features
+
+* add submit screen number hotkeys ([c10c61f](https://github.com/eko24ive/pi-ask/commit/c10c61f1ebb061dab1daf7404089ce6b57c8917c))
+* **skill:** add ask-user decision gate profile ([6d9cb5b](https://github.com/eko24ive/pi-ask/commit/6d9cb5b7bfde54c7522f8e8321046161af296dad))
+
 # [0.4.0](https://github.com/eko24ive/pi-ask/compare/v0.3.0...v0.4.0) (2026-04-24)
 
 
