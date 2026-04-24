@@ -1,3 +1,10 @@
+# [0.4.0](https://github.com/eko24ive/pi-ask/compare/v0.3.0...v0.4.0) (2026-04-24)
+
+
+### Features
+
+* improve ask flow elaboration and validation ([b7c7301](https://github.com/eko24ive/pi-ask/commit/b7c7301f974c81eb82070810304a9267f62d7699))
+
 # [0.3.0](https://github.com/eko24ive/pi-ask/compare/v0.2.0...v0.3.0) (2026-04-23)
 
 
