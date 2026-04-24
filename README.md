@@ -82,6 +82,8 @@ After installation, the package registers one tool: `ask_user`.
 
 That is enough for the agent to gain this clarification capability. The extension already injects prompt guidance that encourages the agent to call `ask_user` when requirements are ambiguous or user preference matters, instead of guessing.
 
+This package also includes an optional skill profile at `skills/ask-user/SKILL.md` (`ask-user-decision-gate`) for stricter decision-gate behavior in high-stakes or ambiguous boundaries.
+
 You can still add your own agent instruction if you want to further reinforce when and how the tool should be used.
 
 Use `type: "preview"` only when every option includes `preview` text for a dedicated preview pane. Descriptions alone are not enough.
