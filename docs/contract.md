@@ -210,7 +210,7 @@ Main flow:
 - `Enter`: confirm or submit
 - `Esc`: cancel the flow
 - `Ctrl+C`: dismiss the entire flow immediately, even while editing a note or free-form answer
-- `1..9`: select or toggle the matching option
+- `1..9`: select or toggle the matching option; on the review tab, `1`, `2`, and `3` trigger `Submit`, `Elaborate`, and `Cancel`
 - `Space`: toggle the active option
 - `n`: edit the active option note
 - `Shift+N`: edit the current question note

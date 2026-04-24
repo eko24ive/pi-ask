@@ -17,7 +17,7 @@ export const UI_TEXT = {
 	unanswered: "→ unanswered",
 	footerInput: " Enter submit · Esc close",
 	footerNote: " Enter save · Esc close",
-	footerSubmit: " ↑↓ select · Enter confirm · Esc cancel",
+	footerSubmit: " 1..3 hotkeys · ↑↓ select · Enter confirm · Esc cancel",
 	footerMulti:
 		" ⇆ tab · ↑↓ select · Space toggle · Enter continue · N/Shift+N note · Esc dismiss",
 	footerDefault:

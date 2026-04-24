@@ -188,8 +188,18 @@ export function confirmCurrentSelection(state: AskState): AskState {
 }
 
 export function applyNumberShortcut(state: AskState, digit: number): AskState {
-	if (digit <= 0 || isSubmitTab(state)) {
+	if (digit <= 0) {
 		return state;
+	}
+
+	if (isSubmitTab(state)) {
+		if (digit > SUBMIT_ACTION_COUNT) {
+			return state;
+		}
+		return confirmCurrentSelection({
+			...state,
+			activeSubmitActionIndex: digit - 1,
+		});
 	}
 
 	const question = getCurrentQuestion(state);

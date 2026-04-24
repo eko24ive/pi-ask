@@ -239,6 +239,7 @@ Behavior details:
 - `details.continuation.affectedQuestionIds` lists the only questions that should be revisited
 - `details.continuation.questionStates` marks each question as `answered`, `needs_clarification`, or `unanswered`
 - submit review tab now offers `Submit`, `Elaborate`, and `Cancel`
+- on the review tab, number hotkeys `1`, `2`, and `3` trigger `Submit`, `Elaborate`, and `Cancel`
 - while `Submit` or `Cancel` is highlighted on the review tab, notes are previewed only for questions with selected answers
 - while `Elaborate` is highlighted on the review tab, the preview expands to show all question notes and all option notes, including notes on unselected options
 - choosing `Elaborate` finishes immediately and returns `mode: "elaborate"`

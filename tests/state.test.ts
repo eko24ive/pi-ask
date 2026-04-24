@@ -556,6 +556,32 @@ test("tab navigation works with a single question", () => {
 	assert.equal(state.view.kind, "navigate");
 });
 
+test("submit tab number shortcuts trigger matching review actions", () => {
+	let state = createInitialState(sampleParams());
+	state = moveTab(state, -1);
+	assert.equal(state.view.kind, "submit");
+
+	const submitted = applyNumberShortcut(state, 1);
+	assert.equal(submitted.completed, true);
+	assert.equal(submitted.cancelled, false);
+	assert.equal(submitted.mode, "submit");
+
+	const elaborated = applyNumberShortcut(state, 2);
+	assert.equal(elaborated.completed, true);
+	assert.equal(elaborated.cancelled, false);
+	assert.equal(elaborated.mode, "elaborate");
+
+	const cancelled = applyNumberShortcut(state, 3);
+	assert.equal(cancelled.completed, true);
+	assert.equal(cancelled.cancelled, true);
+	assert.equal(cancelled.mode, "submit");
+
+	const ignored = applyNumberShortcut(state, 4);
+	assert.equal(ignored.completed, false);
+	assert.equal(ignored.cancelled, false);
+	assert.equal(ignored.activeSubmitActionIndex, 0);
+});
+
 test("escape cancels from main flow but only exits input and note modes when editing", () => {
 	let state = createInitialState(sampleParams());
 	state = cancelFlow(state);
