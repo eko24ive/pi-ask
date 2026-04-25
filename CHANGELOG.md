@@ -1,3 +1,10 @@
+## [0.5.1](https://github.com/eko24ive/pi-ask/compare/v0.5.0...v0.5.1) (2026-04-25)
+
+
+### Bug Fixes
+
+* **skills:** align bundled skill name with folder ([005151f](https://github.com/eko24ive/pi-ask/commit/005151f79ba562c08e0fe9b5bccf59e964c02a32))
+
 # [0.5.0](https://github.com/eko24ive/pi-ask/compare/v0.4.0...v0.5.0) (2026-04-24)
 
 
