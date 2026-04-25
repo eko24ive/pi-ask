@@ -1,5 +1,5 @@
 ---
-name: ask-user-decision-gate
+name: ask-user
 description: "Use ask_user as a decision gate before high-stakes or ambiguous implementation choices."
 metadata:
   short-description: Decision gate for ambiguity and high-stakes choices
