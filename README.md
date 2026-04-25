@@ -19,6 +19,12 @@ You can also install from git:
 pi install git:github.com/eko24ive/pi-ask
 ```
 
+Or try it without installing (load once for the current run):
+
+```bash
+pi -e npm:@eko24ive/pi-ask
+```
+
 ## Features
 
 Once installed, this package gives the agent a native way to ask for clarification instead of guessing.
