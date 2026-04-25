@@ -4,9 +4,9 @@ This folder keeps only the documentation needed to understand and maintain the e
 
 ## Files
 
-- `contract.md` — external behavior, result shape, and UX guarantees
+- `contract.md` — external behavior, full tool payload/result details, and UX guarantees
 - `architecture.md` — module boundaries and invariants
-- `../skills/ask-user/SKILL.md` — auto-bundled agent-side decision-gate guidance; enabled by default, but can be disabled via `pi config`
+- `../skills/ask-user/SKILL.md` — auto-bundled agent-side decision-gate guidance; enabled by default, but can be disabled via `pi config`; inspired by https://github.com/edlsh/pi-ask-user
 
 ## Reading order
 

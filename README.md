@@ -77,224 +77,6 @@ Ask the agent to elaborate on notes before finalizing choices.
 
 ![Review tab with Elaborate action and expanded note preview](docs/media/feature-review-elaborate.png)
 
-## Use
-
-After installation, the package registers one tool: `ask_user`.
-
-That is enough for the agent to gain this clarification capability. The extension already injects prompt guidance that encourages the agent to call `ask_user` when requirements are ambiguous or user preference matters, instead of guessing.
-
-This package also includes an auto-bundled skill profile at `skills/ask-user/SKILL.md` (`ask-user`) for stricter decision-gate behavior in high-stakes or ambiguous boundaries. It is enabled by default when the package is installed, but can be disabled via `pi config`.
-
-You can still add your own agent instruction if you want to further reinforce when and how the tool should be used.
-
-Use `type: "preview"` only when every option includes `preview` text for a dedicated preview pane. Descriptions alone are not enough.
-
-### Optional extra agent instruction
-
-```text
-If you need clarification, prefer `ask_user` over guessing.
-
-Ask 1-3 concise questions.
-Use short tab labels.
-Prefer 2-4 options per question.
-Include descriptions for each option.
-Use `type: "single"` unless multiple options can genuinely apply.
-Use `type: "multi"` only when the user may need to select several answers.
-Always include a non-empty `value` for every option.
-Use `type: "preview"` only when every option includes non-empty `preview` text for the preview panel.
-After answers are returned, continue the task using those answers explicitly.
-```
-
-## Tool input
-
-`ask_user` accepts:
-
-```ts
-{
-  title?: string,
-  questions: [
-    {
-      id: string,
-      label?: string,
-      prompt: string,
-      type?: "single" | "multi" | "preview",
-      required?: boolean,
-      options: [
-        {
-          value: string,
-          label: string,
-          description?: string,
-          preview?: string
-        }
-      ]
-    }
-  ]
-}
-```
-
-### Example tool call payload
-
-```json
-{
-  "title": "Implementation preferences",
-  "questions": [
-    {
-      "id": "style",
-      "label": "Style",
-      "prompt": "How should I frame the next prompt?",
-      "type": "single",
-      "options": [
-        {
-          "value": "minimal",
-          "label": "Minimal",
-          "description": "A short, direct question with few options."
-        },
-        {
-          "value": "balanced",
-          "label": "Balanced",
-          "description": "A standard prompt with a bit more context."
-        },
-        {
-          "value": "rich",
-          "label": "Rich",
-          "description": "A more descriptive prompt with extra detail."
-        }
-      ]
-    },
-    {
-      "id": "frameworks",
-      "label": "Frontend",
-      "prompt": "Which frontend frameworks have you used?",
-      "type": "multi",
-      "options": [
-        { "value": "react", "label": "React", "description": "Most popular UI library" },
-        { "value": "vue", "label": "Vue", "description": "Progressive framework for building UIs" },
-        { "value": "svelte", "label": "Svelte", "description": "Compiler-based approach" }
-      ]
-    }
-  ]
-}
-```
-
-## Returned result
-
-The returned result now also includes:
-
-```ts
-{
-  error?: {
-    kind: "invalid_input"
-    issues: Array<{ path: string; message: string }>
-  }
-  mode: "submit" | "elaborate"
-  continuation?: {
-    strategy: "refine_only" | "resume"
-    affectedQuestionIds: string[]
-    preservedAnswers: Record<string, AskResultAnswer>
-    questionStates: Record<string, {
-      status: "answered" | "needs_clarification" | "unanswered"
-    }>
-  }
-  elaboration?: {
-    instruction: string
-    nextAction: "clarify" | "clarify_then_reask"
-    items: Array<
-      | {
-          target: { kind: "question" }
-          question: {
-            id: string
-            label: string
-            prompt: string
-            type: "single" | "multi" | "preview"
-            options: Array<{
-              value: string
-              label: string
-              description?: string
-              preview?: string
-            }>
-          }
-          answered: boolean
-          answer?: AskResultAnswer
-          note: string
-        }
-      | {
-          target: { kind: "option"; optionValue: string }
-          question: {
-            id: string
-            label: string
-            prompt: string
-            type: "single" | "multi" | "preview"
-            options: Array<{
-              value: string
-              label: string
-              description?: string
-              preview?: string
-            }>
-          }
-          option: {
-            value: string
-            label: string
-            description?: string
-            preview?: string
-          }
-          selected: boolean
-          answered: boolean
-          answer?: AskResultAnswer
-          note: string
-        }
-    >
-  }
-}
-```
-
-The returned `details.answers[questionId]` object may include:
-
-```ts
-{
-  values: string[]
-  labels: string[]
-  indices: number[]
-  customText?: string
-  note?: string
-  optionNotes?: Record<string, string>
-}
-```
-
-Behavior details:
-
-- payloads are validated before the UI opens: question ids must be unique, option values must be unique within a question, and required text fields must not be blank
-- preview questions require preview text for every option; descriptions alone are not enough, and invalid preview payloads suggest adding preview text or switching to `type: "single"`
-- `required` defaults to `false` and remains advisory only
-- question-level notes are submitted whenever authored
-- option notes can be authored for any active option during the UI flow
-- only notes for currently selected options are included in the submitted result
-- deselecting an option keeps its note in UI state, so re-selecting it restores the note
-- empty note text clears the note
-- on single-select questions, saving a free-form answer replaces selected options for that question
-- on multi-select questions, saving a free-form answer keeps other selected options intact
-- on multi-select questions, submitted `values` and `labels` keep selected options first and append the free-form answer last when both exist
-- invalid payloads return `details.error.kind === "invalid_input"` with structured `issues` and a transcript-friendly `Invalid ask_user payload:` message
-- unanswered questions are omitted from `details.answers`
-- in elaborate mode, `details.answers` contains only committed answers; note-only entries move into `details.elaboration.items`
-- `details.continuation.strategy === "refine_only"` means the next ask should refine the current flow instead of restarting it
-- `details.continuation.preservedAnswers` contains prior answers that should be carried forward without re-asking
-- `details.continuation.affectedQuestionIds` lists the only questions that should be revisited
-- `details.continuation.questionStates` marks each question as `answered`, `needs_clarification`, or `unanswered`
-- submit review tab now offers `Submit`, `Elaborate`, and `Cancel`
-- while `Submit` or `Cancel` is highlighted on the review tab, notes are previewed only for questions with selected answers
-- while `Elaborate` is highlighted on the review tab, the preview expands to show all question notes and all option notes, including notes on unselected options
-- choosing `Elaborate` finishes immediately and returns `mode: "elaborate"`
-- `details.elaboration.items` includes all question notes and all option notes, even for unselected options
-- every elaboration item carries the full normalized question and option list for that question, so the agent can resolve referential notes like `above` without relying on chat memory alone
-- `details.elaboration.instruction` explicitly tells the agent to answer the clarification directly first, then re-ask only the affected questions if needed
-- after clarification, agents should prefer another structured follow-up over plain-text multiple choice if a decision is still unresolved
-- once prior answers narrow the branch, agents should bundle the next 2-3 related unresolved decisions into one follow-up ask when possible instead of asking a long chain of one-question follow-ups
-- elaborate summary/result text now emits direct note-specific lines such as `User asked to elaborate on question "Which option would you like to select?" option "Option A" with note "why this one?"`
-- free-form answer editors support pi-style `@` file path autocomplete for quickly mentioning project files
-- keyboard interactions for navigation, editing, review actions, and cancellation are listed in [Key bindings](#key-bindings) below
-
----
-
 ## Key bindings
 
 | Key                         | Context                                 | Effect                                      |
@@ -319,9 +101,17 @@ Behavior details:
 | `Tab` `Shift+Tab` / `←` `→` | Empty editor                            | Switch tabs without closing editor          |
 | Arrow keys / `Tab`          | Non-empty editor                        | Stay in editor for cursor movement          |
 
----
+## Use
 
-If pi runs without UI, `ask_user` returns a `Needs user input` message plus normalized pending questions in `details.questions` so a caller can re-ask them manually.
+After installation, the extension registers the `ask_user` tool.
+
+Agents can auto-discover and call it when they need clarification instead of guessing. In interactive sessions, it opens a terminal UI flow for structured answers and returns normalized answers back to the agent.
+
+This package also bundles the `ask-user` skill profile from `skills/ask-user/SKILL.md`. It reinforces when to use the tool, is enabled by default when installed, and can be disabled via `pi config`. The skill was inspired by https://github.com/edlsh/pi-ask-user.
+
+You can still add your own agent instruction if you want to further reinforce usage.
+
+For exact input/output and UX guarantees, see [`docs/contract.md`](docs/contract.md).
 
 ## Local development
 
