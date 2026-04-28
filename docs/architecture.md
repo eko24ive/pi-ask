@@ -37,8 +37,9 @@ The codebase is split so the implementation reads through file boundaries and na
 
 ### UI
 
-- `src/ui/controller.ts` — connects key input, editor lifecycle, live config subscription, and pure state transitions
+- `src/ui/controller.ts` — connects key input, editor lifecycle, live config subscription, dirty-dismiss confirmation, and pure state transitions
 - `src/ui/input.ts` — raw input to commands using resolved config-backed keymaps
+- `src/ui/dismiss-guard.ts` — pure helpers for dirty-flow exit confirmation behavior
 - `src/ui/render.ts` and `src/ui/render-*.ts` — screen rendering, including config-backed footer/keymap hints
 - `src/ui/settings-state.ts` — pure settings-modal draft/dirty/notice state
 - `src/ui/settings-modal.ts` / `src/ui/show-settings-modal.ts` — ask settings modal rendering and launcher

@@ -12,12 +12,13 @@ import type { QuestionRenderContext, Theme } from "./render-types.ts";
 
 export function renderAskScreen(args: {
 	config: AskConfig;
+	footerNotice?: string;
 	state: AskState;
 	theme: Theme;
 	width: number;
 	editor: QuestionRenderContext["editor"];
 }): string[] {
-	const { config, state, theme, width, editor } = args;
+	const { config, footerNotice, state, theme, width, editor } = args;
 	const lines: string[] = [];
 	const question = getCurrentQuestion(state);
 	const options = getRenderableOptions(question);
@@ -38,6 +39,6 @@ export function renderAskScreen(args: {
 		});
 	}
 
-	renderFrameFooter({ config, lines, state, theme, width });
+	renderFrameFooter({ config, footerNotice, lines, state, theme, width });
 	return lines;
 }

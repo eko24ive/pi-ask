@@ -10,6 +10,7 @@ import { maybeAutoSubmitState } from "../src/ui/auto-submit.ts";
 const enabledConfig: AskConfig = {
 	...DEFAULT_ASK_CONFIG,
 	behaviour: {
+		...DEFAULT_ASK_CONFIG.behaviour,
 		autoSubmitWhenAnsweredWithoutNotes: true,
 	},
 };
@@ -17,6 +18,7 @@ const enabledConfig: AskConfig = {
 const disabledConfig: AskConfig = {
 	...DEFAULT_ASK_CONFIG,
 	behaviour: {
+		...DEFAULT_ASK_CONFIG.behaviour,
 		autoSubmitWhenAnsweredWithoutNotes: false,
 	},
 };

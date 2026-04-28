@@ -34,6 +34,8 @@ test("config store writes full normalized config on save", async () => {
 	await store.save({
 		behaviour: {
 			autoSubmitWhenAnsweredWithoutNotes: true,
+			confirmDismissWhenDirty: true,
+			showFooterHints: false,
 		},
 		keymaps: DEFAULT_ASK_CONFIG.keymaps,
 	});
@@ -43,6 +45,8 @@ test("config store writes full normalized config on save", async () => {
 		schemaVersion: 1,
 		behaviour: {
 			autoSubmitWhenAnsweredWithoutNotes: true,
+			confirmDismissWhenDirty: true,
+			showFooterHints: false,
 		},
 		keymaps: DEFAULT_ASK_CONFIG.keymaps,
 	});
@@ -77,7 +81,11 @@ test("config store loads current config version without rewriting", async () => 
 		path,
 		JSON.stringify({
 			schemaVersion: 1,
-			behaviour: { autoSubmitWhenAnsweredWithoutNotes: true },
+			behaviour: {
+				autoSubmitWhenAnsweredWithoutNotes: true,
+				confirmDismissWhenDirty: true,
+				showFooterHints: false,
+			},
 			keymaps: DEFAULT_ASK_CONFIG.keymaps,
 		})
 	);
@@ -89,6 +97,8 @@ test("config store loads current config version without rewriting", async () => 
 		result.config.behaviour.autoSubmitWhenAnsweredWithoutNotes,
 		true
 	);
+	assert.equal(result.config.behaviour.confirmDismissWhenDirty, true);
+	assert.equal(result.config.behaviour.showFooterHints, false);
 	assert.deepEqual(result.config.keymaps, DEFAULT_ASK_CONFIG.keymaps);
 	await rm(join(path, "..", ".."), { force: true, recursive: true });
 });
@@ -100,7 +110,11 @@ test("config store falls back only keymaps when configured keymaps are invalid",
 		path,
 		JSON.stringify({
 			schemaVersion: 1,
-			behaviour: { autoSubmitWhenAnsweredWithoutNotes: true },
+			behaviour: {
+				autoSubmitWhenAnsweredWithoutNotes: true,
+				confirmDismissWhenDirty: true,
+				showFooterHints: false,
+			},
 			keymaps: {
 				cancel: "?",
 				dismiss: "ctrl+c",
@@ -119,6 +133,8 @@ test("config store falls back only keymaps when configured keymaps are invalid",
 		result.config.behaviour.autoSubmitWhenAnsweredWithoutNotes,
 		true
 	);
+	assert.equal(result.config.behaviour.confirmDismissWhenDirty, true);
+	assert.equal(result.config.behaviour.showFooterHints, false);
 	assert.deepEqual(result.config.keymaps, DEFAULT_ASK_CONFIG.keymaps);
 	assert.match(result.notice?.text ?? "", DEFAULT_KEYMAPS_NOTICE_PATTERN);
 	await rm(join(path, "..", ".."), { force: true, recursive: true });

@@ -20,7 +20,9 @@ Default path:
 {
   "schemaVersion": 1,
   "behaviour": {
-    "autoSubmitWhenAnsweredWithoutNotes": false
+    "autoSubmitWhenAnsweredWithoutNotes": false,
+    "confirmDismissWhenDirty": false,
+    "showFooterHints": true
   },
   "keymaps": {
     "cancel": "esc",
@@ -40,6 +42,20 @@ Default path:
 - type: boolean
 - default: `false`
 - effect: when enabled, a fully answered ask flow with no notes can auto-submit from the review tab
+
+### `behaviour.confirmDismissWhenDirty`
+
+- type: boolean
+- default: `false`
+- effect: when enabled, discarding a dirty ask flow requires a second cancel/dismiss action
+- the warning stays visible until the user changes tabs in the ask flow
+- dirty means there are saved answers/notes or unsaved editor draft text
+
+### `behaviour.showFooterHints`
+
+- type: boolean
+- default: `true`
+- effect: when disabled, the ask flow hides the footer keymap hints
 
 ## Keymaps
 
@@ -151,7 +167,9 @@ Invalid keymaps include:
 {
   "schemaVersion": 1,
   "behaviour": {
-    "autoSubmitWhenAnsweredWithoutNotes": true
+    "autoSubmitWhenAnsweredWithoutNotes": true,
+    "confirmDismissWhenDirty": true,
+    "showFooterHints": false
   },
   "keymaps": {
     "cancel": "q",

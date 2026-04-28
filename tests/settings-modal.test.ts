@@ -7,6 +7,8 @@ import { AskSettingsModal } from "../src/ui/settings-modal.ts";
 const savedConfig: AskConfig = {
 	behaviour: {
 		autoSubmitWhenAnsweredWithoutNotes: false,
+		confirmDismissWhenDirty: false,
+		showFooterHints: true,
 	},
 	keymaps: {
 		cancel: "esc",
@@ -75,6 +77,8 @@ test("settings modal renders behaviour tab with checkbox and dirty notice", () =
 
 	assert(text.includes("Behaviour"));
 	assert(text.includes("[x] Auto-submit when answered without notes"));
+	assert(text.includes("[ ] Confirm dismiss when dirty"));
+	assert(text.includes("[x] Show footer hints"));
 	assert(text.includes("Unsaved changes. Press Ctrl+S to save."));
 	assert(text.includes("Ctrl+S save · Esc/Ctrl+C/? twice discard"));
 });
@@ -131,6 +135,8 @@ test("settings modal saves and clears dirty state", async () => {
 
 	const text = modal.render(72).join("\n");
 	assert.equal(saved?.behaviour.autoSubmitWhenAnsweredWithoutNotes, true);
+	assert.equal(saved?.behaviour.confirmDismissWhenDirty, false);
+	assert.equal(saved?.behaviour.showFooterHints, true);
 	assert(text.includes("Saved"));
 	assert.equal(text.includes("Unsaved changes. Press Ctrl+S to save."), false);
 	assert.equal(

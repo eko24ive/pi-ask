@@ -30,16 +30,21 @@ export function renderFrameHeader(args: {
 
 export function renderFrameFooter(args: {
 	config: AskConfig;
+	footerNotice?: string;
 	lines: string[];
 	state: AskState;
 	theme: Theme;
 	width: number;
 }) {
-	const { config, lines, state, theme, width } = args;
+	const { config, footerNotice, lines, state, theme, width } = args;
 	const add = (text = "") => lines.push(truncateToWidth(text, width));
 	const footer = renderFooter(config, state, width);
-	if (footer.length > 0) {
+	const noticeLines = footerNotice ? wrapText(footerNotice, width) : [];
+	if (noticeLines.length > 0 || footer.length > 0) {
 		add();
+		for (const line of noticeLines) {
+			add(theme.fg("warning", line));
+		}
 		for (const line of footer) {
 			add(theme.fg("dim", line));
 		}
@@ -185,6 +190,9 @@ function renderFooter(
 	state: AskState,
 	width: number
 ): string[] {
+	if (!config.behaviour.showFooterHints) {
+		return [];
+	}
 	let footer: string;
 	if (state.view.kind === "input") {
 		footer = renderFooterText(config, "input");

@@ -4,6 +4,8 @@ import type { AskConfig, AskConfigFileV1 } from "./schema.ts";
 export const DEFAULT_ASK_CONFIG: AskConfig = {
 	behaviour: {
 		autoSubmitWhenAnsweredWithoutNotes: false,
+		confirmDismissWhenDirty: false,
+		showFooterHints: true,
 	},
 	keymaps: {
 		...DEFAULT_ASK_KEYMAPS,
@@ -18,6 +20,12 @@ export function normalizeAskConfig(
 			autoSubmitWhenAnsweredWithoutNotes:
 				config?.behaviour?.autoSubmitWhenAnsweredWithoutNotes ??
 				DEFAULT_ASK_CONFIG.behaviour.autoSubmitWhenAnsweredWithoutNotes,
+			confirmDismissWhenDirty:
+				config?.behaviour?.confirmDismissWhenDirty ??
+				DEFAULT_ASK_CONFIG.behaviour.confirmDismissWhenDirty,
+			showFooterHints:
+				config?.behaviour?.showFooterHints ??
+				DEFAULT_ASK_CONFIG.behaviour.showFooterHints,
 		},
 		keymaps: {
 			...DEFAULT_ASK_CONFIG.keymaps,
@@ -33,6 +41,8 @@ export function toAskConfigFileV1(config: AskConfig): AskConfigFileV1 {
 		behaviour: {
 			autoSubmitWhenAnsweredWithoutNotes:
 				normalized.behaviour.autoSubmitWhenAnsweredWithoutNotes,
+			confirmDismissWhenDirty: normalized.behaviour.confirmDismissWhenDirty,
+			showFooterHints: normalized.behaviour.showFooterHints,
 		},
 		keymaps: {
 			cancel: normalized.keymaps.cancel,

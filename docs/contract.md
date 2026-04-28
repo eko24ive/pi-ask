@@ -202,7 +202,7 @@ This document defines the stable external behavior. It does not explain internal
 - transcript-friendly call and result rendering
 - ask settings modal with `Keymaps` and `Behaviour` tabs
 - `?` in the ask flow and `/ask-settings` in pi open the same ask settings modal
-- `Behaviour` exposes `Auto-submit when answered without notes` as a persisted user setting
+- `Behaviour` exposes persisted user settings for `Auto-submit when answered without notes`, `Confirm dismiss when dirty`, and `Show footer hints`
 - `Keymaps` is a persisted config section for `cancel`, `dismiss`, `toggle`, `confirm`, `optionNote`, and `questionNote`
 - the `Keymaps` tab is read-only and shows the active bindings plus the config file path
 - if the flow is already on the review tab, all questions are answered, and no notes exist, enabling auto-submit can complete the current ask flow immediately
@@ -223,7 +223,9 @@ Editing flow:
 
 - the configurable `confirm` binding submits the current editor input and closes the editor; in note editors this saves the note only and keeps the ask flow open
 - the configurable `cancel` binding saves draft and closes the editor
-- the configurable `dismiss` binding dismisses the entire flow immediately without saving the current editor draft
+- when `Confirm dismiss when dirty` is enabled, cancelling or dismissing a dirty ask flow requires the same action a second time
+- the dirty-dismiss warning stays visible until the user changes tabs in the ask flow
+- the configurable `dismiss` binding dismisses the entire flow immediately without saving the current editor draft when no dirty-dismiss confirmation is pending
 - `?`: open the ask settings modal on the `Keymaps` tab when the editor is empty; otherwise enter `?` as text
 - inside the ask settings modal, `Ctrl+S` saves the current draft config without closing the modal
 - when editor has text, arrow keys and `Tab` stay in the editor so the cursor can move while typing
@@ -236,7 +238,7 @@ If `ctx.hasUI === false`, the tool returns a `Needs user input` message in `cont
 
 Validation is handled inside the tool so malformed calls produce the same structured error shape as other invalid payloads instead of relying on pre-execution schema failures.
 
-The ask flow subscribes to runtime settings updates while open. In practice, this means changing `Auto-submit when answered without notes` or reloading config-backed keymaps can affect the in-progress ask flow immediately instead of only future asks.
+The ask flow subscribes to runtime settings updates while open. In practice, this means changing `Auto-submit when answered without notes`, `Confirm dismiss when dirty`, `Show footer hints`, or reloading config-backed keymaps can affect the in-progress ask flow immediately instead of only future asks.
 
 The fallback message includes normalized pending questions and options so the caller can re-ask them manually. `details.questions` still contains normalized question metadata, while `details.answers` stays empty until a user responds.
 

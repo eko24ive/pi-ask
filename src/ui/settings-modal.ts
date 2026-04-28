@@ -20,7 +20,7 @@ import {
 	requestDiscard,
 	setSaving,
 	shouldDiscard,
-	toggleAutoSubmit,
+	toggleBehaviourSetting,
 } from "./settings-state.ts";
 
 interface Theme {
@@ -58,10 +58,28 @@ const BEHAVIOUR_ROWS = [
 	{
 		description:
 			"Auto-submit completed ask flows when no question or option notes were added.",
+		key: "autoSubmitWhenAnsweredWithoutNotes",
 		getValue(config: AskConfig) {
 			return config.behaviour.autoSubmitWhenAnsweredWithoutNotes;
 		},
 		label: "Auto-submit when answered without notes",
+	},
+	{
+		description:
+			"Require a second cancel or dismiss action before discarding answered or drafted ask content.",
+		key: "confirmDismissWhenDirty",
+		getValue(config: AskConfig) {
+			return config.behaviour.confirmDismissWhenDirty;
+		},
+		label: "Confirm dismiss when dirty",
+	},
+	{
+		description: "Show footer keymap hints at the bottom of the ask flow.",
+		key: "showFooterHints",
+		getValue(config: AskConfig) {
+			return config.behaviour.showFooterHints;
+		},
+		label: "Show footer hints",
 	},
 ] as const;
 
@@ -168,7 +186,11 @@ export class AskSettingsModal {
 			return;
 		}
 		if (matchesAny(data, SETTINGS_MODAL_KEYS.toggle)) {
-			this.state = toggleAutoSubmit(this.state);
+			const row = BEHAVIOUR_ROWS[this.state.behaviourFocusIndex];
+			if (!row) {
+				return;
+			}
+			this.state = toggleBehaviourSetting(this.state, row.key);
 			this.refresh();
 		}
 	}

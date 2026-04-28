@@ -30,6 +30,11 @@ import { isEditingView } from "../state/view.ts";
 import type { AskParams, AskResult, AskState } from "../types.ts";
 import { maybeAutoSubmitState } from "./auto-submit.ts";
 import { createAskAutocompleteProvider } from "./autocomplete.ts";
+import {
+	DIRTY_DISMISS_NOTICE,
+	shouldConfirmDirtyDismiss,
+	shouldDiscardAfterConfirmation,
+} from "./dismiss-guard.ts";
 import type { AskInputCommand } from "./input.ts";
 import { getInputCommand } from "./input.ts";
 import { renderAskScreen } from "./render.ts";
@@ -49,6 +54,7 @@ type AskFlowParams = AskParams &
 interface AskFlowController {
 	config: AskConfig;
 	ctx: ExtensionContext;
+	dismissNotice?: string;
 	done: Done;
 	editor: Editor;
 	settingsOpen: boolean;
@@ -82,6 +88,7 @@ function createAskFlowController(
 	const controller: AskFlowController = {
 		config: params.config,
 		ctx: params.ctx,
+		dismissNotice: undefined,
 		done,
 		editor: createEditor(tui, theme, params.cwd),
 		settingsOpen: false,
@@ -128,6 +135,7 @@ function renderController(
 	return renderAskScreen({
 		config: controller.config,
 		editor: controller.editor,
+		footerNotice: getDismissNotice(controller),
 		state: controller.state,
 		theme: controller.theme,
 		width,
@@ -154,7 +162,7 @@ function handleEditingCommand(
 	data: string
 ) {
 	if (command.kind === "dismiss") {
-		commitState(controller, dismissFlow(controller.state), { finish: true });
+		handleExitFlow(controller, dismissFlow(controller.state));
 		return;
 	}
 	if (command.kind === "showSettings") {
@@ -205,7 +213,7 @@ function handleNavigationCommand(
 			});
 			return;
 		case "cancel":
-			commitState(controller, cancelFlow(controller.state), { finish: true });
+			handleExitFlow(controller, cancelFlow(controller.state));
 			return;
 		case "numberShortcut":
 			commitState(
@@ -214,7 +222,7 @@ function handleNavigationCommand(
 			);
 			return;
 		case "dismiss":
-			commitState(controller, dismissFlow(controller.state), { finish: true });
+			handleExitFlow(controller, dismissFlow(controller.state));
 			return;
 		case "showSettings":
 			showSettingsModal(controller);
@@ -274,6 +282,9 @@ function commitState(
 	nextState: AskState,
 	options: { finish?: boolean; syncSelection?: boolean } = {}
 ) {
+	if (nextState.activeTabIndex !== controller.state.activeTabIndex) {
+		clearDismissNotice(controller);
+	}
 	controller.suppressAutoInputForSelection = false;
 	controller.state = nextState;
 	if (options.syncSelection !== false) {
@@ -289,10 +300,11 @@ function commitState(
 
 function submitEditor(controller: AskFlowController, value: string) {
 	controller.suppressAutoInputForSelection = false;
-	controller.state = maybeAutoSubmitState(
-		submitEditorDraft(controller.state, value),
-		controller.config
-	);
+	const nextState = submitEditorDraft(controller.state, value);
+	if (nextState.activeTabIndex !== controller.state.activeTabIndex) {
+		clearDismissNotice(controller);
+	}
+	controller.state = maybeAutoSubmitState(nextState, controller.config);
 	controller.editor.setText("");
 	refresh(controller);
 	maybeFinish(controller);
@@ -311,6 +323,39 @@ function closeEditor(controller: AskFlowController) {
 	controller.suppressAutoInputForSelection = nextState.view.kind !== "input";
 	controller.state = nextState;
 	refresh(controller);
+}
+
+function handleExitFlow(controller: AskFlowController, nextState: AskState) {
+	if (!shouldRequestDismissConfirmation(controller)) {
+		commitState(controller, nextState, { finish: true });
+		return;
+	}
+	if (shouldDiscardAfterConfirmation(!!controller.dismissNotice)) {
+		commitState(controller, nextState, { finish: true });
+		return;
+	}
+	controller.dismissNotice = DIRTY_DISMISS_NOTICE;
+	refresh(controller);
+}
+
+function shouldRequestDismissConfirmation(
+	controller: AskFlowController
+): boolean {
+	return shouldConfirmDirtyDismiss({
+		config: controller.config,
+		state: controller.state,
+		editingText: isEditingView(controller.state)
+			? controller.editor.getText()
+			: "",
+	});
+}
+
+function clearDismissNotice(controller: AskFlowController) {
+	controller.dismissNotice = undefined;
+}
+
+function getDismissNotice(controller: AskFlowController): string | undefined {
+	return controller.dismissNotice;
 }
 
 function showSettingsModal(controller: AskFlowController) {

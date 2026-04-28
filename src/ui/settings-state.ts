@@ -131,15 +131,17 @@ export function shouldDiscard(state: AskSettingsState, now: number): boolean {
 	return !!state.pendingCloseUntil && now <= state.pendingCloseUntil;
 }
 
-export function toggleAutoSubmit(state: AskSettingsState): AskSettingsState {
+export function toggleBehaviourSetting(
+	state: AskSettingsState,
+	key: keyof AskConfig["behaviour"]
+): AskSettingsState {
 	return {
 		...state,
 		draftConfig: {
 			...state.draftConfig,
 			behaviour: {
 				...state.draftConfig.behaviour,
-				autoSubmitWhenAnsweredWithoutNotes:
-					!state.draftConfig.behaviour.autoSubmitWhenAnsweredWithoutNotes,
+				[key]: !state.draftConfig.behaviour[key],
 			},
 		},
 	};
@@ -149,6 +151,9 @@ function deepEqual(left: AskConfig, right: AskConfig): boolean {
 	return (
 		left.behaviour.autoSubmitWhenAnsweredWithoutNotes ===
 			right.behaviour.autoSubmitWhenAnsweredWithoutNotes &&
+		left.behaviour.confirmDismissWhenDirty ===
+			right.behaviour.confirmDismissWhenDirty &&
+		left.behaviour.showFooterHints === right.behaviour.showFooterHints &&
 		left.keymaps.cancel === right.keymaps.cancel &&
 		left.keymaps.dismiss === right.keymaps.dismiss &&
 		left.keymaps.toggle === right.keymaps.toggle &&

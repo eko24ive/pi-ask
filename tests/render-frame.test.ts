@@ -261,3 +261,35 @@ test("footer keeps earlier hint chunk on the first wrapped line", () => {
 		"? settings",
 	]);
 });
+
+test("footer hints can be hidden without affecting frame rendering", () => {
+	const state = createInitialState({
+		questions: [
+			{
+				id: "q1",
+				label: "One",
+				prompt: "One",
+				options: [{ value: "a", label: "A" }],
+			},
+		],
+	});
+	const config = {
+		...DEFAULT_ASK_CONFIG,
+		behaviour: {
+			...DEFAULT_ASK_CONFIG.behaviour,
+			showFooterHints: false,
+		},
+	};
+
+	const lines = renderAskScreen({
+		config,
+		state,
+		theme: plainTheme(),
+		width: 22,
+		editor: mockEditor(),
+	});
+
+	assert.equal(lines.at(-1), "──────────────────────");
+	assert.equal(lines.join("\n").includes("? settings"), false);
+	assert.equal(lines.join("\n").includes("Enter confirm"), false);
+});

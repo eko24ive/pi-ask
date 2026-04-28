@@ -6,6 +6,8 @@ export const AskConfigFileV1Schema = Type.Object({
 	behaviour: Type.Optional(
 		Type.Object({
 			autoSubmitWhenAnsweredWithoutNotes: Type.Optional(Type.Boolean()),
+			confirmDismissWhenDirty: Type.Optional(Type.Boolean()),
+			showFooterHints: Type.Optional(Type.Boolean()),
 		})
 	),
 	keymaps: Type.Optional(
@@ -34,6 +36,8 @@ export interface AskConfigKeymaps {
 export interface AskConfig {
 	behaviour: {
 		autoSubmitWhenAnsweredWithoutNotes: boolean;
+		confirmDismissWhenDirty: boolean;
+		showFooterHints: boolean;
 	};
 	keymaps: AskConfigKeymaps;
 }
