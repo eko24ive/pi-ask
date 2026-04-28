@@ -66,6 +66,27 @@ test("submitEditorDraft advances submitted custom answers", () => {
 	assert.equal(next.view.kind, "submit");
 });
 
+test("submitEditorDraft saves notes without completing the ask flow", () => {
+	const state = enterQuestionNoteMode(
+		createInitialState({
+			questions: [
+				{
+					id: "q1",
+					prompt: "Question?",
+					options: [{ value: "a", label: "A" }],
+				},
+			],
+		}),
+		"q1"
+	);
+
+	const next = submitEditorDraft(state, "needs examples");
+	assert.equal(next.answers.q1.note, "needs examples");
+	assert.equal(next.view.kind, "navigate");
+	assert.equal(next.completed, false);
+	assert.equal(next.cancelled, false);
+});
+
 test("getEditorDraft reads saved note and custom text from view", () => {
 	let state = syncStateToSelection({
 		...createInitialState({

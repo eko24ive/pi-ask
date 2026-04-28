@@ -107,7 +107,7 @@ Ask the agent to elaborate on notes before finalizing choices.
 | `↑` `↓`                     | Review tab                              | Change highlighted review action            |
 | `Enter`                     | Review tab                              | Confirm highlighted review action           |
 | `Enter`                     | Free-form answer editor                 | Save and submit current input               |
-| `Enter`                     | Note editor                             | Save current note                           |
+| `Enter`                     | Note editor                             | Save current note and return to navigation  |
 | `Esc`                       | Free-form or note editor                | Save draft and close editor                 |
 | `Ctrl+C`                    | Anywhere                                | Dismiss entire ask flow immediately         |
 | `↑` `↓`                     | Empty editor                            | Move options without closing editor         |

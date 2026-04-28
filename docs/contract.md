@@ -218,7 +218,7 @@ Main flow:
 
 Editing flow:
 
-- `Enter`: save and submit the current input
+- `Enter`: submit the current editor input and close the editor; in note editors this saves the note only and keeps the ask flow open
 - `Esc`: save draft and close the editor
 - `Ctrl+C`: dismiss the entire flow immediately without saving the current editor draft
 - `?`: open the key bindings modal when the editor is empty; otherwise enter `?` as text
