@@ -93,7 +93,7 @@ Ask the agent to elaborate on notes before finalizing choices.
 
 | Key                         | Context                                 | Effect                                      |
 |-----------------------------|-----------------------------------------|---------------------------------------------|
-| `?`                         | Ask flow / empty editor                 | Open key bindings modal                     |
+| `?`                         | Ask flow / empty editor                 | Open ask settings modal                     |
 | `Tab` `Shift+Tab`           | Main flow                               | Switch tabs                                 |
 | `←` `→`                     | Main flow                               | Switch tabs                                 |
 | `↑` `↓`                     | Main flow                               | Move cursor                                 |
@@ -116,9 +116,9 @@ Ask the agent to elaborate on notes before finalizing choices.
 
 ## Use
 
-After installation, the extension registers the `ask_user` tool.
+After installation, the extension registers the `ask_user` tool and `/ask-settings` command.
 
-Agents can auto-discover and call it when they need clarification instead of guessing. In interactive sessions, it opens a terminal UI flow for structured answers, supports native pi-style `@` file references while typing answers or notes, and returns normalized answers back to the agent.
+Agents can auto-discover and call `ask_user` when they need clarification instead of guessing. In interactive sessions, it opens a terminal UI flow for structured answers, supports native pi-style `@` file references while typing answers or notes, and returns normalized answers back to the agent. `/ask-settings` opens the same modal used by `?`, with `Keymaps` and `Behaviour` tabs.
 
 This package also bundles the `ask-user` skill profile from `skills/ask-user/SKILL.md`. It reinforces when to use the tool, is enabled by default when installed, and can be disabled via `pi config`. The skill was inspired by https://github.com/edlsh/pi-ask-user.
 

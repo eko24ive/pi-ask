@@ -199,13 +199,15 @@ This document defines the stable external behavior. It does not explain internal
 - on the review tab, `Submit` and `Cancel` preview notes only for answered questions
 - on the review tab, `Elaborate` preview expands to all question notes and all option notes, including notes on unselected options
 - transcript-friendly call and result rendering
+- ask settings modal with `Keymaps` and `Behaviour` tabs; `Behaviour` may be empty while unimplemented
+- `/ask-settings` opens the same ask settings modal as `?`
 - elaborate results are phrased as direct follow-up instructions, for example: `User asked to elaborate on question "Which option would you like to select?" option "Option A" with note "why this one?"`
 
 ## Keyboard behavior
 
 Main flow:
 
-- `?`: open the key bindings modal
+- `?`: open the ask settings modal on the `Keymaps` tab
 - `Tab`, `Shift+Tab`, `Left`, `Right`: move between tabs
 - `Up`, `Down`: move between options
 - `Enter`: confirm or submit
@@ -221,7 +223,7 @@ Editing flow:
 - `Enter`: submit the current editor input and close the editor; in note editors this saves the note only and keeps the ask flow open
 - `Esc`: save draft and close the editor
 - `Ctrl+C`: dismiss the entire flow immediately without saving the current editor draft
-- `?`: open the key bindings modal when the editor is empty; otherwise enter `?` as text
+- `?`: open the ask settings modal on the `Keymaps` tab when the editor is empty; otherwise enter `?` as text
 - when editor has text, arrow keys and `Tab` stay in the editor so the cursor can move while typing
 - when editor is empty, `Up`/`Down` move options and `Tab`/`Shift+Tab`/`Left`/`Right` move between tabs without requiring `Esc` first
 - navigation resumes only after closing the editor with `Esc`, unless the editor is empty and the navigation keys above are used

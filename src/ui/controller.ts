@@ -27,10 +27,10 @@ import {
 import { isEditingView } from "../state/view.ts";
 import type { AskParams, AskResult, AskState } from "../types.ts";
 import { createAskAutocompleteProvider } from "./autocomplete.ts";
-import { AskHelpModal } from "./help-modal.ts";
 import type { AskInputCommand } from "./input.ts";
 import { getInputCommand } from "./input.ts";
 import { renderAskScreen } from "./render.ts";
+import { showAskSettingsModal } from "./show-settings-modal.ts";
 
 type CustomCallback = Parameters<ExtensionContext["ui"]["custom"]>[0];
 type CustomCallbackArgs = CustomCallback extends (...args: infer T) => unknown
@@ -288,27 +288,10 @@ function showHelpModal(controller: AskFlowController) {
 		return;
 	}
 	controller.helpOpen = true;
-	controller.ctx.ui
-		.custom<void>(
-			(_tui, _theme, _keybindings, done) =>
-				new AskHelpModal(controller.theme, () => {
-					done();
-				}),
-			{
-				overlay: true,
-				overlayOptions: {
-					anchor: "center",
-					margin: 1,
-					maxHeight: "90%",
-					minWidth: 26,
-					width: 72,
-				},
-			}
-		)
-		.finally(() => {
-			controller.helpOpen = false;
-			refresh(controller);
-		});
+	showAskSettingsModal(controller.ctx.ui).finally(() => {
+		controller.helpOpen = false;
+		refresh(controller);
+	});
 }
 
 function refresh(controller: AskFlowController) {
