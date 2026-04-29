@@ -28,9 +28,15 @@ export class AskConfigStore {
 	private notice?: AskConfigNotice;
 	private readonly listeners = new Set<(config: AskConfig) => void>();
 	private readonly configPath: string;
+	private readonly legacyConfigPath?: string;
 
-	constructor(configPath = getAskConfigPath()) {
+	constructor(
+		configPath = getAskConfigPath(),
+		legacyConfigPath = getLegacyAskConfigPath()
+	) {
 		this.configPath = configPath;
+		this.legacyConfigPath =
+			legacyConfigPath === configPath ? undefined : legacyConfigPath;
 	}
 
 	subscribe(onChange: (config: AskConfig) => void): () => void {
@@ -80,12 +86,15 @@ export class AskConfigStore {
 	}
 
 	private async loadFromDisk(): Promise<AskConfigLoadResult> {
+		await this.migrateLegacyConfigIfNeeded();
 		let content: string;
 		try {
 			content = await readFile(this.configPath, "utf-8");
 		} catch (error) {
 			if (isMissingFileError(error)) {
-				return { config: normalizeAskConfig(DEFAULT_ASK_CONFIG) };
+				const config = normalizeAskConfig(DEFAULT_ASK_CONFIG);
+				await this.save(config);
+				return { config };
 			}
 			throw error;
 		}
@@ -137,6 +146,20 @@ export class AskConfigStore {
 			},
 		};
 	}
+
+	private async migrateLegacyConfigIfNeeded(): Promise<void> {
+		if (!this.legacyConfigPath) {
+			return;
+		}
+		if (await pathExists(this.configPath)) {
+			return;
+		}
+		if (!(await pathExists(this.legacyConfigPath))) {
+			return;
+		}
+		await mkdir(dirname(this.configPath), { recursive: true });
+		await rename(this.legacyConfigPath, this.configPath);
+	}
 }
 
 let askConfigStore: AskConfigStore | undefined;
@@ -147,12 +170,28 @@ export function getAskConfigStore(): AskConfigStore {
 }
 
 export function getAskConfigPath(): string {
+	return join(getAgentDir(), "eko24ive-pi-ask.json");
+}
+
+export function getLegacyAskConfigPath(): string {
 	return join(getAgentDir(), "extensions", "eko24ive-pi-ask.json");
 }
 
 function createBackupPath(path: string, date: Date): string {
 	const timestamp = date.toISOString().replaceAll(":", "-").replace(/\./g, "-");
 	return path.replace(JSON_EXTENSION_PATTERN, `.${timestamp}.bak.json`);
+}
+
+async function pathExists(path: string): Promise<boolean> {
+	try {
+		await readFile(path, "utf-8");
+		return true;
+	} catch (error) {
+		if (isMissingFileError(error)) {
+			return false;
+		}
+		throw error;
+	}
 }
 
 function isMissingFileError(error: unknown): boolean {

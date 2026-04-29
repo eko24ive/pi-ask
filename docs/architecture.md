@@ -71,7 +71,8 @@ The codebase is split so the implementation reads through file boundaries and na
 - editor lifecycle stays in the controller, not in the reducers
 - persisted ask settings are versioned and normalized before use
 - invalid persisted keymaps fall back to default keymaps for the current session without discarding valid behaviour settings
-- settings modal edits a local draft and only persists on explicit save
+- settings modal edits a local draft and only persists modal changes on explicit save
+- when the ask config file is missing, the first ask use writes a default persisted config snapshot
 - live config updates can affect an in-progress ask flow immediately
 
 ## Documentation rule

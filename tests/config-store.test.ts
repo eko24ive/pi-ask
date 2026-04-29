@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import test from "node:test";
 import { DEFAULT_ASK_CONFIG } from "../src/config/defaults.ts";
 import { AskConfigStore } from "../src/config/store.ts";
@@ -13,18 +13,22 @@ async function makeTempPath(name: string): Promise<string> {
 	const root = await import("node:fs/promises").then(({ mkdtemp }) =>
 		mkdtemp(join(tmpdir(), name))
 	);
-	return join(root, "extensions", "eko24ive-pi-ask.json");
+	return join(root, "eko24ive-pi-ask.json");
 }
 
-test("config store uses in-memory defaults when file is missing", async () => {
+test("config store writes defaults when file is missing", async () => {
 	const path = await makeTempPath("pi-ask-config-missing-");
 	const store = new AskConfigStore(path);
 
 	const result = await store.ensureLoaded();
 
 	assert.deepEqual(result.config, DEFAULT_ASK_CONFIG);
-	await assert.rejects(readFile(path, "utf-8"));
-	await rm(join(path, "..", ".."), { force: true, recursive: true });
+	assert.deepEqual(JSON.parse(await readFile(path, "utf-8")), {
+		schemaVersion: 1,
+		behaviour: DEFAULT_ASK_CONFIG.behaviour,
+		keymaps: DEFAULT_ASK_CONFIG.keymaps,
+	});
+	await rm(dirname(path), { force: true, recursive: true });
 });
 
 test("config store writes full normalized config on save", async () => {
@@ -35,6 +39,7 @@ test("config store writes full normalized config on save", async () => {
 		behaviour: {
 			autoSubmitWhenAnsweredWithoutNotes: true,
 			confirmDismissWhenDirty: true,
+			doublePressReviewShortcuts: true,
 			showFooterHints: false,
 		},
 		keymaps: DEFAULT_ASK_CONFIG.keymaps,
@@ -46,22 +51,23 @@ test("config store writes full normalized config on save", async () => {
 		behaviour: {
 			autoSubmitWhenAnsweredWithoutNotes: true,
 			confirmDismissWhenDirty: true,
+			doublePressReviewShortcuts: true,
 			showFooterHints: false,
 		},
 		keymaps: DEFAULT_ASK_CONFIG.keymaps,
 	});
-	await rm(join(path, "..", ".."), { force: true, recursive: true });
+	await rm(dirname(path), { force: true, recursive: true });
 });
 
 test("config store backs up broken json and loads defaults", async () => {
 	const path = await makeTempPath("pi-ask-config-broken-");
-	await mkdir(join(path, ".."), { recursive: true });
+	await mkdir(dirname(path), { recursive: true });
 	await writeFile(path, "{bad json", "utf-8");
 	const store = new AskConfigStore(path);
 
 	const result = await store.ensureLoaded();
 	const dirEntries = await import("node:fs/promises").then(({ readdir }) =>
-		readdir(join(path, ".."))
+		readdir(dirname(path))
 	);
 
 	assert.deepEqual(result.config, DEFAULT_ASK_CONFIG);
@@ -71,12 +77,12 @@ test("config store backs up broken json and loads defaults", async () => {
 	);
 	assert(dirEntries.some((entry) => entry.includes(".bak.json")));
 	await assert.rejects(readFile(path, "utf-8"));
-	await rm(join(path, "..", ".."), { force: true, recursive: true });
+	await rm(dirname(path), { force: true, recursive: true });
 });
 
 test("config store loads current config version without rewriting", async () => {
 	const path = await makeTempPath("pi-ask-config-current-");
-	await mkdir(join(path, ".."), { recursive: true });
+	await mkdir(dirname(path), { recursive: true });
 	await writeFile(
 		path,
 		JSON.stringify({
@@ -84,6 +90,7 @@ test("config store loads current config version without rewriting", async () => 
 			behaviour: {
 				autoSubmitWhenAnsweredWithoutNotes: true,
 				confirmDismissWhenDirty: true,
+				doublePressReviewShortcuts: true,
 				showFooterHints: false,
 			},
 			keymaps: DEFAULT_ASK_CONFIG.keymaps,
@@ -98,14 +105,60 @@ test("config store loads current config version without rewriting", async () => 
 		true
 	);
 	assert.equal(result.config.behaviour.confirmDismissWhenDirty, true);
+	assert.equal(result.config.behaviour.doublePressReviewShortcuts, true);
 	assert.equal(result.config.behaviour.showFooterHints, false);
 	assert.deepEqual(result.config.keymaps, DEFAULT_ASK_CONFIG.keymaps);
-	await rm(join(path, "..", ".."), { force: true, recursive: true });
+	await rm(dirname(path), { force: true, recursive: true });
+});
+
+test("config store migrates the legacy extensions config path", async () => {
+	const root = await import("node:fs/promises").then(({ mkdtemp }) =>
+		mkdtemp(join(tmpdir(), "pi-ask-config-legacy-"))
+	);
+	const path = join(root, "eko24ive-pi-ask.json");
+	const legacyPath = join(root, "extensions", "eko24ive-pi-ask.json");
+	await mkdir(dirname(legacyPath), { recursive: true });
+	await writeFile(
+		legacyPath,
+		JSON.stringify({
+			schemaVersion: 1,
+			behaviour: {
+				autoSubmitWhenAnsweredWithoutNotes: true,
+				confirmDismissWhenDirty: true,
+				doublePressReviewShortcuts: true,
+				showFooterHints: false,
+			},
+			keymaps: DEFAULT_ASK_CONFIG.keymaps,
+		})
+	);
+	const store = new AskConfigStore(path, legacyPath);
+
+	const result = await store.ensureLoaded();
+
+	assert.equal(
+		result.config.behaviour.autoSubmitWhenAnsweredWithoutNotes,
+		true
+	);
+	assert.equal(result.config.behaviour.confirmDismissWhenDirty, true);
+	assert.equal(result.config.behaviour.doublePressReviewShortcuts, true);
+	assert.equal(result.config.behaviour.showFooterHints, false);
+	await assert.rejects(readFile(legacyPath, "utf-8"));
+	assert.deepEqual(JSON.parse(await readFile(path, "utf-8")), {
+		schemaVersion: 1,
+		behaviour: {
+			autoSubmitWhenAnsweredWithoutNotes: true,
+			confirmDismissWhenDirty: true,
+			doublePressReviewShortcuts: true,
+			showFooterHints: false,
+		},
+		keymaps: DEFAULT_ASK_CONFIG.keymaps,
+	});
+	await rm(root, { force: true, recursive: true });
 });
 
 test("config store falls back only keymaps when configured keymaps are invalid", async () => {
 	const path = await makeTempPath("pi-ask-config-invalid-keymaps-");
-	await mkdir(join(path, ".."), { recursive: true });
+	await mkdir(dirname(path), { recursive: true });
 	await writeFile(
 		path,
 		JSON.stringify({
@@ -113,6 +166,7 @@ test("config store falls back only keymaps when configured keymaps are invalid",
 			behaviour: {
 				autoSubmitWhenAnsweredWithoutNotes: true,
 				confirmDismissWhenDirty: true,
+				doublePressReviewShortcuts: true,
 				showFooterHints: false,
 			},
 			keymaps: {
@@ -134,8 +188,9 @@ test("config store falls back only keymaps when configured keymaps are invalid",
 		true
 	);
 	assert.equal(result.config.behaviour.confirmDismissWhenDirty, true);
+	assert.equal(result.config.behaviour.doublePressReviewShortcuts, true);
 	assert.equal(result.config.behaviour.showFooterHints, false);
 	assert.deepEqual(result.config.keymaps, DEFAULT_ASK_CONFIG.keymaps);
 	assert.match(result.notice?.text ?? "", DEFAULT_KEYMAPS_NOTICE_PATTERN);
-	await rm(join(path, "..", ".."), { force: true, recursive: true });
+	await rm(dirname(path), { force: true, recursive: true });
 });

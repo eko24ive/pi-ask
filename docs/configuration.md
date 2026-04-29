@@ -12,7 +12,9 @@ When changing pi-ask settings:
 
 Default path:
 
-`~/.pi/agent/extensions/eko24ive-pi-ask.json`
+`~/.pi/agent/eko24ive-pi-ask.json`
+
+If the file does not exist yet, pi-ask creates it with the current default settings the first time the ask flow is used.
 
 ## Config shape
 
@@ -21,7 +23,8 @@ Default path:
   "schemaVersion": 1,
   "behaviour": {
     "autoSubmitWhenAnsweredWithoutNotes": false,
-    "confirmDismissWhenDirty": false,
+    "confirmDismissWhenDirty": true,
+    "doublePressReviewShortcuts": true,
     "showFooterHints": true
   },
   "keymaps": {
@@ -46,10 +49,17 @@ Default path:
 ### `behaviour.confirmDismissWhenDirty`
 
 - type: boolean
-- default: `false`
+- default: `true`
 - effect: when enabled, discarding a dirty ask flow requires a second cancel/dismiss action
 - the warning stays visible until the user changes tabs in the ask flow
 - dirty means there are saved answers/notes or unsaved editor draft text
+
+### `behaviour.doublePressReviewShortcuts`
+
+- type: boolean
+- default: `true`
+- effect: when enabled, review-tab number shortcuts (`1`, `2`, `3`) only trigger after pressing the same key twice
+- the review screen shows an inline hint and keeps the pending shortcut armed until another review shortcut is pressed or the user leaves the tab
 
 ### `behaviour.showFooterHints`
 
@@ -142,6 +152,7 @@ These are intentionally not configurable:
 - `tab`, `shift+tab`, `left`, `right` move between tabs
 - `up`, `down` move between options/actions
 - `1..9` triggers option/review shortcuts
+- when `behaviour.doublePressReviewShortcuts` is enabled, review-tab shortcuts `1`, `2`, and `3` require the same key twice
 - `@` remains file-reference affordance in editors
 
 ## Invalid keymaps behavior
@@ -169,6 +180,7 @@ Invalid keymaps include:
   "behaviour": {
     "autoSubmitWhenAnsweredWithoutNotes": true,
     "confirmDismissWhenDirty": true,
+    "doublePressReviewShortcuts": true,
     "showFooterHints": false
   },
   "keymaps": {
