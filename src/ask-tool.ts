@@ -14,15 +14,18 @@ import {
 } from "./ask-tool-helpers.ts";
 import { AskParamsSchema } from "./schema.ts";
 import type { AskParams } from "./types.ts";
+import { t } from "./i18n.ts";
 import { runAskFlow } from "./ui/controller.ts";
 
 export function registerAskTool(pi: ExtensionAPI) {
 	pi.registerTool({
 		name: "ask_user",
-		label: "Ask User",
-		description: ASK_TOOL_DESCRIPTION,
-		promptSnippet:
-			"Clarify ambiguous or preference-sensitive decisions with a short interactive interview before proceeding",
+		label: t("tool.label", "Ask User"),
+		description: t("tool.description", ASK_TOOL_DESCRIPTION),
+		promptSnippet: t(
+			"tool.promptSnippet",
+			"Clarify ambiguous or preference-sensitive decisions with a short interactive interview before proceeding"
+		),
 		promptGuidelines: [...ASK_TOOL_PROMPT_GUIDELINES],
 		parameters: AskParamsSchema,
 		execute: executeAskTool,

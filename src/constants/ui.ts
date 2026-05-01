@@ -13,10 +13,12 @@ export const UI_DIMENSIONS = {
 	submitMinReviewWidth: 24,
 } as const;
 
+import { t } from "../i18n.ts";
+
 export const UI_TEXT = {
-	questionNoteTitle: "Note:",
-	reviewTitle: "Review answers",
-	unanswered: "→ unanswered",
-	editorPlaceholderInput: "Type answer...",
-	editorPlaceholderNote: "Add a note...",
+	questionNoteTitle: t("ui.noteTitle", "Note:"),
+	reviewTitle: t("ui.reviewTitle", "Review answers"),
+	unanswered: t("ui.unanswered", "→ unanswered"),
+	editorPlaceholderInput: t("ui.inputPlaceholder", "Type answer..."),
+	editorPlaceholderNote: t("ui.notePlaceholder", "Add a note..."),
 } as const;
