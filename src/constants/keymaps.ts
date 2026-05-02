@@ -177,14 +177,14 @@ const FIXED_BINDING_METADATA: readonly FixedBindingMetadata[] = [
 	},
 	{
 		id: "previousOption",
-		keys: [Key.up],
+		keys: [Key.ctrl("p"), Key.up],
 		kind: "command",
-		description: "Move between options/actions",
+		description: "Move to previous option/action",
 		contexts: ["Main flow", "Empty editor"],
 	},
 	{
 		id: "nextOption",
-		keys: [Key.down],
+		keys: [Key.ctrl("n"), Key.down],
 		kind: "command",
 		description: "Move to next option/action",
 		contexts: ["Main flow", "Empty editor"],

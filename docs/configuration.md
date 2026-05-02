@@ -190,7 +190,7 @@ These are intentionally not configurable:
 
 - `?` opens ask settings
 - `tab`, `shift+tab`, `left`, `right` move between tabs
-- `up`, `down` move between options/actions
+- `ctrl+p`/`up` and `ctrl+n`/`down` move between options/actions
 - `1..9` triggers option/review shortcuts
 - when `behaviour.doublePressReviewShortcuts` is enabled, review-tab shortcuts `1`, `2`, and `3` require the same key twice
 - `@` remains file-reference affordance in editors

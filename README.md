@@ -117,11 +117,11 @@ Fixed bindings:
 | `?`                         | Ask flow / empty editor                 | Open ask settings                           |
 | `Tab` `Shift+Tab`           | Main flow                               | Switch tabs                                 |
 | `←` `→`                     | Main flow                               | Switch tabs                                 |
-| `↑` `↓`                     | Main flow                               | Move cursor                                 |
+| `Ctrl+P` `Ctrl+N` / `↑` `↓` | Main flow                               | Move cursor                                 |
 | `1..9`                      | Options list                            | Select or toggle matching option            |
 | `1` `2` `3`                 | Review tab                              | Trigger `Submit` / `Elaborate` / `Cancel`   |
 | `↑` `↓`                     | Review tab                              | Change highlighted review action            |
-| `↑` `↓`                     | Empty editor                            | Move options without closing editor         |
+| `Ctrl+P` `Ctrl+N` / `↑` `↓` | Empty editor                            | Move options without closing editor         |
 | `Tab` `Shift+Tab` / `←` `→` | Empty editor                            | Switch tabs without closing editor          |
 | Arrow keys / `Tab`          | Non-empty editor                        | Stay in editor for cursor movement          |
 
