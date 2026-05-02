@@ -18,28 +18,34 @@ export const ASK_TOOL_DESCRIPTION =
 export const ASK_TOOL_PROMPT_GUIDELINES = [
 	"Use this tool before making preference-sensitive decisions about scope, tone, UX, naming, architecture, docs, or implementation direction.",
 	"When multiple valid directions exist, ask 1-3 concise questions instead of committing to one path on your own.",
-	"Prefer one focused decision per question and use short labels with 2-4 clear options.",
+	"Prefer one focused decision per question. Use short labels. Provide clear, distinct options. Do not add filler options.",
 	"Always include a non-empty `value` for every option.",
-	'Use `type: "single"` by default and `type: "multi"` only when several answers can genuinely apply.',
-	'Use `type: "preview"` only when every option includes non-empty `preview` text for the dedicated preview pane. Option descriptions do not satisfy this requirement.',
+	"Choose question `type` from the question semantics: `single` means one answer is expected, `multi` means multiple answers could reasonably be selected, and `preview` means options need preview-pane detail and every option includes non-empty `preview` text.",
+	"Avoid defaulting mechanically; infer from whether the options are mutually exclusive, can coexist, or need preview-pane detail.",
+	'Use `type: "preview"` only when every option includes non-empty `preview` text. Option descriptions do not satisfy this requirement.',
 	"After clarifying a note or follow-up question, prefer another structured ask_user follow-up if a choice is still needed instead of switching to plain-text multiple choice in chat.",
 	"When prior answers already narrow the branch, bundle the next 2-3 related unresolved decisions into one follow-up ask instead of issuing a long sequence of single-question asks.",
 	"Use one-at-a-time follow-up asks only when the next question materially depends on the previous answer.",
 ] as const;
 
+interface ValidateParamsOptions {
+	allowFreeform?: boolean;
+}
+
 export function validateParams(
-	params: AskParams
+	params: AskParams,
+	options: ValidateParamsOptions = {}
 ):
 	| { ok: true; state: ReturnType<typeof createInitialState> }
 	| { ok: false; issues: AskValidationIssue[] } {
-	const issues = collectValidationIssues(params);
+	const issues = collectValidationIssues(params, options);
 	if (issues.length > 0) {
 		return { ok: false, issues };
 	}
 
 	return {
 		ok: true,
-		state: createInitialState(params),
+		state: createInitialState(params, options),
 	};
 }
 

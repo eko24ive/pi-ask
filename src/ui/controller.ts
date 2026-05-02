@@ -52,8 +52,16 @@ type Tui = CustomCallbackArgs[0];
 type Theme = CustomCallbackArgs[1];
 type Keybindings = CustomCallbackArgs[2];
 type Done = (result: AskResult) => void;
+interface AskFlowOptions {
+	allowFreeform?: boolean;
+}
+
 type AskFlowParams = AskParams &
-	Pick<ExtensionContext, "cwd"> & { config: AskConfig; ctx: ExtensionContext };
+	Pick<ExtensionContext, "cwd"> & {
+		config: AskConfig;
+		ctx: ExtensionContext;
+		flowOptions: AskFlowOptions;
+	};
 
 interface AskFlowController {
 	config: AskConfig;
@@ -72,12 +80,19 @@ interface AskFlowController {
 
 export async function runAskFlow(
 	ctx: ExtensionContext,
-	params: AskParams
+	params: AskParams,
+	options: AskFlowOptions = {}
 ): Promise<AskResult> {
 	const store = getAskConfigStore();
 	const config = await store.getConfig();
 	return ctx.ui.custom<AskResult>((...args) =>
-		createAskFlowController(args, { ...params, config, cwd: ctx.cwd, ctx })
+		createAskFlowController(args, {
+			...params,
+			config,
+			cwd: ctx.cwd,
+			ctx,
+			flowOptions: options,
+		})
 	);
 }
 
@@ -97,7 +112,7 @@ function createAskFlowController(
 		done,
 		editor: createEditor(tui, theme, params.cwd),
 		settingsOpen: false,
-		state: createInitialState(params),
+		state: createInitialState(params, params.flowOptions),
 		suppressAutoInputForSelection: false,
 		pendingReviewShortcutActionIndex: undefined,
 		theme,
@@ -321,8 +336,10 @@ function submitEditor(controller: AskFlowController, value: string) {
 	if (nextState.activeTabIndex !== controller.state.activeTabIndex) {
 		clearDismissNotice(controller);
 	}
-	controller.state = maybeAutoSubmitState(nextState, controller.config);
-	controller.editor.setText("");
+	controller.state = nextState;
+	syncSelection(controller);
+	controller.state = maybeAutoSubmitState(controller.state, controller.config);
+	hydrateEditor(controller);
 	refresh(controller);
 	maybeFinish(controller);
 }

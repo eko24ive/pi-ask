@@ -62,5 +62,9 @@ export function syncStateToSelection(state: AskState): AskState {
 		return state;
 	}
 
+	if (getAnswer(state, question.id)?.customText?.trim()) {
+		return state;
+	}
+
 	return enterInputMode(state, question.id);
 }

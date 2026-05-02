@@ -84,7 +84,8 @@
   "peerDependencies": {
     "@mariozechner/pi-coding-agent": "*",
     "@mariozechner/pi-tui": "*",
-    "typebox": "*"
+    "typebox": "*",
+    "@mariozechner/pi-ai": "*"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.12",
@@ -105,7 +106,8 @@
     "lefthook": "^2.1.6",
     "semantic-release": "^25.0.3",
     "typescript": "6.0.2",
-    "ultracite": "7.6.0"
+    "ultracite": "7.6.0",
+    "@mariozechner/pi-ai": "0.69.0"
   },
   "config": {
     "commitizen": {

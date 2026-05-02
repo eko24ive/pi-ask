@@ -87,8 +87,9 @@ After attempt 2:
 ## ask_user payload quality
 
 - Ask one concrete decision at a time.
-- Prefer 2-4 clear options (single-select by default).
-- Use `multi` only when selections are truly independent.
+- Provide clear, distinct options. Do not add filler options.
+- Choose question type from semantics: `single` means one answer is expected, `multi` means multiple answers could reasonably be selected, and `preview` means options need preview-pane detail with non-empty preview text.
+- Avoid defaulting mechanically; infer from whether options are mutually exclusive, can coexist, or need preview-pane detail.
 - Keep option labels short and outcome-oriented.
 - Include trade-off descriptions when non-obvious.
 - For research/planning, ask about goals, constraints, evaluation criteria, audience, budget, timeline, risk tolerance, and desired output only when they materially affect the result.

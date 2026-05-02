@@ -24,7 +24,8 @@ test("config store writes defaults when file is missing", async () => {
 
 	assert.deepEqual(result.config, DEFAULT_ASK_CONFIG);
 	assert.deepEqual(JSON.parse(await readFile(path, "utf-8")), {
-		schemaVersion: 1,
+		schemaVersion: 2,
+		answer: DEFAULT_ASK_CONFIG.answer,
 		behaviour: DEFAULT_ASK_CONFIG.behaviour,
 		keymaps: DEFAULT_ASK_CONFIG.keymaps,
 	});
@@ -47,7 +48,8 @@ test("config store writes full normalized config on save", async () => {
 
 	const content = await readFile(path, "utf-8");
 	assert.deepEqual(JSON.parse(content), {
-		schemaVersion: 1,
+		schemaVersion: 2,
+		answer: DEFAULT_ASK_CONFIG.answer,
 		behaviour: {
 			autoSubmitWhenAnsweredWithoutNotes: true,
 			confirmDismissWhenDirty: true,
@@ -143,7 +145,8 @@ test("config store migrates the legacy root config path into extensions", async 
 	assert.equal(result.config.behaviour.showFooterHints, false);
 	await assert.rejects(readFile(legacyPath, "utf-8"));
 	assert.deepEqual(JSON.parse(await readFile(path, "utf-8")), {
-		schemaVersion: 1,
+		schemaVersion: 2,
+		answer: DEFAULT_ASK_CONFIG.answer,
 		behaviour: {
 			autoSubmitWhenAnsweredWithoutNotes: true,
 			confirmDismissWhenDirty: true,

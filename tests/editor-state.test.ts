@@ -66,6 +66,91 @@ test("submitEditorDraft advances submitted custom answers", () => {
 	assert.equal(next.view.kind, "submit");
 });
 
+test("submitted answer can sync directly into next freeform input", () => {
+	let state = syncStateToSelection(
+		createInitialState(
+			{
+				questions: [
+					{
+						id: "q1",
+						prompt: "First?",
+						options: [
+							{ value: "freeform", label: "Type answer", freeform: true },
+						],
+					},
+					{
+						id: "q2",
+						prompt: "Second?",
+						options: [
+							{ value: "freeform", label: "Type answer", freeform: true },
+						],
+					},
+				],
+			},
+			{ allowFreeform: true }
+		)
+	);
+
+	state = submitEditorDraft(state, "first answer");
+	state = syncStateToSelection(state);
+
+	assert.equal(state.activeTabIndex, 1);
+	assert.deepEqual(state.view, { kind: "input", questionId: "q2" });
+});
+
+test("syncStateToSelection does not reopen answered freeform input", () => {
+	let state = syncStateToSelection(
+		createInitialState(
+			{
+				questions: [
+					{
+						id: "q1",
+						prompt: "First?",
+						options: [
+							{ value: "freeform", label: "Type answer", freeform: true },
+						],
+					},
+				],
+			},
+			{ allowFreeform: true }
+		)
+	);
+	state = submitEditorDraft(state, "already answered");
+	state = syncStateToSelection({
+		...state,
+		activeTabIndex: 0,
+		view: { kind: "navigate" },
+	});
+
+	assert.equal(state.view.kind, "navigate");
+	assert.equal(state.answers.q1.customText, "already answered");
+});
+
+test("tab navigation can sync from review back into freeform input", () => {
+	let state = createInitialState(
+		{
+			questions: [
+				{
+					id: "q1",
+					prompt: "First?",
+					options: [
+						{ value: "freeform", label: "Type answer", freeform: true },
+					],
+				},
+			],
+		},
+		{ allowFreeform: true }
+	);
+	state = { ...state, activeTabIndex: 1, view: { kind: "submit" } };
+	state = syncStateToSelection({
+		...state,
+		activeTabIndex: 0,
+		view: { kind: "navigate" },
+	});
+
+	assert.deepEqual(state.view, { kind: "input", questionId: "q1" });
+});
+
 test("submitEditorDraft saves notes without completing the ask flow", () => {
 	const state = enterQuestionNoteMode(
 		createInitialState({

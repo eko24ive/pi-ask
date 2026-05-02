@@ -13,6 +13,8 @@ const CUSTOM_OPTION: AskDisplayOption = {
 	isCustomOption: true,
 };
 
+const DEFAULT_FREEFORM_LABEL = "Type your answer:";
+
 export function getCurrentQuestion(state: AskState): AskQuestion | undefined {
 	return state.questions[state.activeTabIndex];
 }
@@ -34,7 +36,28 @@ export function getRenderableOptions(
 	if (!question) {
 		return [];
 	}
+	const freeformOption = getFreeformOption(question);
+	if (freeformOption) {
+		return [
+			{
+				...freeformOption,
+				label: DEFAULT_FREEFORM_LABEL,
+				isCustomOption: true,
+				isFreeformOnlyOption: true,
+			},
+		];
+	}
 	return [...question.options, CUSTOM_OPTION];
+}
+
+function getFreeformOption(
+	question: AskQuestion
+): AskDisplayOption | undefined {
+	if (question.options.length !== 1) {
+		return;
+	}
+	const option = question.options[0];
+	return option.freeform ? option : undefined;
 }
 
 export function getCurrentOption(

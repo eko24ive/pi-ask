@@ -23,6 +23,9 @@ importers:
       '@commitlint/config-conventional':
         specifier: ^19.8.1
         version: 19.8.1
+      '@mariozechner/pi-ai':
+        specifier: 0.69.0
+        version: 0.69.0(ws@8.20.0)(zod@4.3.6)
       '@mariozechner/pi-coding-agent':
         specifier: 0.69.0
         version: 0.69.0(ws@8.20.0)(zod@4.3.6)

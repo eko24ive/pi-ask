@@ -24,19 +24,26 @@ const noop = () => {
 
 function registerMockTool() {
 	const tools: Record<string, unknown>[] = [];
+	const entries: Array<{ customType: string; data: unknown }> = [];
 	registerAskTool({
+		appendEntry(customType: string, data: unknown) {
+			entries.push({ customType, data });
+		},
 		registerTool(tool: unknown) {
 			tools.push(tool as Record<string, unknown>);
 		},
 	} as never);
-	return tools[0] as {
-		execute: (...args: any[]) => Promise<any>;
-		renderCall: (args: unknown, theme: any) => { text: string };
-		renderResult: (
-			result: any,
-			options: unknown,
-			theme: any
-		) => { text: string };
+	return {
+		entries,
+		tool: tools[0] as {
+			execute: (...args: any[]) => Promise<any>;
+			renderCall: (args: unknown, theme: any) => { text: string };
+			renderResult: (
+				result: any,
+				options: unknown,
+				theme: any
+			) => { text: string };
+		},
 	};
 }
 
@@ -61,8 +68,25 @@ function sampleParams(): AskParams {
 	};
 }
 
+test("ask tool stores valid payloads as soon as they are called", async () => {
+	const { entries, tool } = registerMockTool();
+	const params = sampleParams();
+
+	await tool.execute("call-1", params, undefined, noop, makeCtx(false));
+
+	assert.equal(entries.length, 1);
+	assert.equal(entries[0].customType, "ask:payload");
+	assert.deepEqual(entries[0].data, {
+		version: 1,
+		source: "tool",
+		params,
+		sourceEntryId: "call-1",
+		timestamp: (entries[0].data as { timestamp: number }).timestamp,
+	});
+});
+
 test("ask tool returns pending questions in non-interactive mode", async () => {
-	const tool = registerMockTool();
+	const { tool } = registerMockTool();
 
 	const result = await tool.execute(
 		"call-1",
@@ -90,7 +114,7 @@ test("ask tool returns pending questions in non-interactive mode", async () => {
 });
 
 test("ask tool includes custom answer fallback for preview questions", async () => {
-	const tool = registerMockTool();
+	const { tool } = registerMockTool();
 
 	const result = await tool.execute(
 		"call-1",
@@ -115,7 +139,7 @@ test("ask tool includes custom answer fallback for preview questions", async () 
 });
 
 test("ask tool rejects invalid payloads before UI opens with structured issues", async () => {
-	const tool = registerMockTool();
+	const { tool } = registerMockTool();
 
 	const result = await tool.execute(
 		"call-1",
@@ -155,7 +179,7 @@ test("ask tool rejects invalid payloads before UI opens with structured issues",
 });
 
 test("ask tool reports missing option values with structured issues", async () => {
-	const tool = registerMockTool();
+	const { tool } = registerMockTool();
 
 	const result = await tool.execute(
 		"call-1",
@@ -188,7 +212,7 @@ test("ask tool reports missing option values with structured issues", async () =
 });
 
 test("ask tool reports empty questions with structured issues", async () => {
-	const tool = registerMockTool();
+	const { tool } = registerMockTool();
 
 	const result = await tool.execute(
 		"call-1",
@@ -215,7 +239,7 @@ test("ask tool reports empty questions with structured issues", async () => {
 });
 
 test("ask tool reports invalid question types with structured issues", async () => {
-	const tool = registerMockTool();
+	const { tool } = registerMockTool();
 
 	const result = await tool.execute(
 		"call-1",
@@ -250,7 +274,7 @@ test("ask tool reports invalid question types with structured issues", async () 
 });
 
 test("ask tool reports preview validation with structured issues", async () => {
-	const tool = registerMockTool();
+	const { tool } = registerMockTool();
 
 	const result = await tool.execute(
 		"call-1",
@@ -285,7 +309,7 @@ test("ask tool reports preview validation with structured issues", async () => {
 });
 
 test("ask tool transcript renderers summarize call and cancelled result", () => {
-	const tool = registerMockTool();
+	const { tool } = registerMockTool();
 	const theme = {
 		bold: (text: string) => text,
 		fg: (_token: string, text: string) => text,

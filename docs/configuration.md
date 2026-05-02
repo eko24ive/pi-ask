@@ -28,7 +28,16 @@ Unsupported future versions or invalid files are backed up and defaults are load
 
 ```json
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
+  "answer": {
+    "extractionModels": [
+      { "provider": "openai-codex", "id": "gpt-5.4-mini" },
+      { "provider": "github-copilot", "id": "gpt-5.4-mini" },
+      { "provider": "anthropic", "id": "claude-haiku-4-5" }
+    ],
+    "extractionTimeoutMs": 30000,
+    "extractionRetries": 1
+  },
   "behaviour": {
     "autoSubmitWhenAnsweredWithoutNotes": false,
     "confirmDismissWhenDirty": true,
@@ -45,6 +54,29 @@ Unsupported future versions or invalid files are backed up and defaults are load
   }
 }
 ```
+
+## Answer extraction
+
+These settings affect only the `/answer` command. Normal `ask_user` tool calls do not use an extraction model.
+
+### `answer.extractionModels`
+
+- type: array of `{ "provider": string, "id": string }`
+- default: `openai-codex/gpt-5.4-mini`, `github-copilot/gpt-5.4-mini`, then `anthropic/claude-haiku-4-5`
+- effect: `/answer` tries configured models in order and uses the first model with available auth
+- fallback: if no configured model is usable, `/answer` tries the current chat model after validating its auth
+
+### `answer.extractionTimeoutMs`
+
+- type: positive number
+- default: `30000`
+- effect: per-attempt extraction timeout in milliseconds
+
+### `answer.extractionRetries`
+
+- type: integer from `0` to `3`
+- default: `1`
+- effect: number of retry attempts after raw JSON parsing fails; retries include the parse error and previous response as feedback
 
 ## Behaviour
 
@@ -184,7 +216,14 @@ Invalid keymaps include:
 
 ```json
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
+  "answer": {
+    "extractionRetries": 1,
+    "extractionTimeoutMs": 30000,
+    "extractionModels": [
+      { "provider": "openai-codex", "id": "gpt-5.4-mini" }
+    ]
+  },
   "behaviour": {
     "autoSubmitWhenAnsweredWithoutNotes": true,
     "confirmDismissWhenDirty": true,
@@ -207,7 +246,9 @@ Invalid keymaps include:
 When editing this config for a user:
 
 - preserve unrelated fields
-- keep `schemaVersion` at `1`
+- keep `schemaVersion` at `2`
+- preserve `answer.extractionModels` as explicit provider/id pairs
+- keep `answer.extractionRetries` between `0` and `3`
 - do not assign reserved bindings to configurable actions
 - do not create duplicate configurable bindings
 - after changing the file, tell the user to run `/reload` or restart pi

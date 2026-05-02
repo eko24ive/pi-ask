@@ -200,6 +200,10 @@ This document defines the stable external behavior. It does not explain internal
 - on the review tab, `Submit` and `Cancel` preview notes only for answered questions
 - on the review tab, `Elaborate` preview expands to all question notes and all option notes, including notes on unselected options
 - transcript-friendly call and result rendering
+- `/answer` command to extract a raw-JSON `AskParams` form from the latest completed assistant message and open the ask UI
+- `/answer` extraction may use an internal `freeform: true` option for open-ended questions with no explicit choices; these render as user-input-only questions with the label `Type your answer:`, no numbered option row, and no selection caret; this marker is not part of the public `ask_user` tool contract
+- `/answer:again` command to replay the latest `/answer`-extracted form on the current branch
+- `/ask:replay` command to replay the latest real `ask_user` form on the current branch
 - ask settings list with binary behaviour toggles
 - `?` in the ask flow and `/ask-settings` in pi open the same lightweight ask settings overlay
 - behaviour settings persist immediately when changed: `Auto-submit when answered without notes`, `Confirm dismiss when dirty`, `Double-press review shortcuts`, and `Show footer hints`
@@ -240,6 +244,16 @@ If `ctx.hasUI === false`, the tool returns a `Needs user input` message in `cont
 Validation is handled inside the tool so malformed calls produce the same structured error shape as other invalid payloads instead of relying on pre-execution schema failures.
 
 The ask flow subscribes to runtime settings updates while open. In practice, this means changing `Auto-submit when answered without notes`, `Confirm dismiss when dirty`, `Double-press review shortcuts`, `Show footer hints`, or reloading config-backed keymaps can affect the in-progress ask flow immediately instead of only future asks.
+
+## Slash command replay/extraction
+
+- valid `ask_user` payloads are persisted as branch custom entries before the UI opens, so `/ask:replay` can reopen them after cancel, `/resume`, or `/tree`
+- `/answer` scans the current branch for the latest assistant message; if that message did not finish with `stop`, extraction is refused
+- `/answer` expects the extractor to return raw JSON only; JSON parse failures are retried according to `answer.extractionRetries`, then reported to the user without opening the ask UI
+- `{ "questions": [] }` from extraction means no questions were found and is not treated as an invalid ask payload
+- command-flow cancellation closes with a notification and does not send a message to the agent
+- submitted or elaborated command-flow results are sent back with user-message semantics
+- replay commands scan only `ctx.sessionManager.getBranch()`, ignore sibling/future branch payloads, and revalidate stored payloads before opening the UI
 
 The fallback message includes normalized pending questions and options so the caller can re-ask them manually. `details.questions` still contains normalized question metadata, while `details.answers` stays empty until a user responds.
 

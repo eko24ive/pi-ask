@@ -1,10 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { visibleWidth } from "@mariozechner/pi-tui";
+import { DEFAULT_ASK_CONFIG } from "../src/config/defaults.ts";
 import type { AskConfig } from "../src/config/schema.ts";
 import { AskSettingsList } from "../src/ui/settings-list.ts";
 
 const savedConfig: AskConfig = {
+	answer: {
+		...DEFAULT_ASK_CONFIG.answer,
+	},
 	behaviour: {
 		autoSubmitWhenAnsweredWithoutNotes: false,
 		confirmDismissWhenDirty: true,

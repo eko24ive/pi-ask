@@ -1,8 +1,17 @@
 import type { AskConfigMigration, VersionedAskConfigFile } from "./types.ts";
 
-export const CURRENT_ASK_CONFIG_SCHEMA_VERSION = 1;
+export const CURRENT_ASK_CONFIG_SCHEMA_VERSION = 2;
 
-const ASK_CONFIG_MIGRATIONS: AskConfigMigration[] = [];
+const ASK_CONFIG_MIGRATIONS: AskConfigMigration[] = [
+	{
+		from: 1,
+		to: 2,
+		migrate: (config) => ({
+			...config,
+			schemaVersion: 2,
+		}),
+	},
+];
 
 export class AskConfigVersionMigrationError extends Error {
 	readonly reason: "invalid_or_unsupported" | "migration_failed";

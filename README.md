@@ -36,7 +36,11 @@ Once installed, this package gives the agent a native way to ask for clarificati
 - 👀 Review tab with `Submit`, `Elaborate`, and `Cancel`
 - 💬 Elaboration flow to capture note-based clarification before final submission
 - ⌨️ Fast keyboard-first interaction with customizable ask keymaps (also mobile-friendly in remote sessions)
-- ⚙️ Ask settings with persisted behaviour and keymap customization via config
+- ⚙️ Ask settings with persisted behaviour, keymap customization, and `/answer` extraction config
+- 🔁 Slash commands for fallback/replay:
+  - `/answer` extracts questions from the latest assistant message into an ask flow
+  - `/answer:again` reopens the latest `/answer` form on the current branch
+  - `/ask:replay` replays the latest real `ask_user` form on the current branch
 - 🗣️ You can talk to your agent to configure pi-ask; it will read the bundled configuration guide and tailor the config for you
 
 ## Feature walkthrough
@@ -129,7 +133,16 @@ You can edit this file yourself, ask pi to edit it for you, or use `/ask-setting
 
 ```json
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
+  "answer": {
+    "extractionModels": [
+      { "provider": "openai-codex", "id": "gpt-5.4-mini" },
+      { "provider": "github-copilot", "id": "gpt-5.4-mini" },
+      { "provider": "anthropic", "id": "claude-haiku-4-5" }
+    ],
+    "extractionTimeoutMs": 30000,
+    "extractionRetries": 1
+  },
   "behaviour": {
     "autoSubmitWhenAnsweredWithoutNotes": false,
     "confirmDismissWhenDirty": true,
@@ -151,9 +164,20 @@ Accepted notation follows pi-tui key ids. Common aliases are normalized, for exa
 
 ## Use
 
-After installation, the extension registers the `ask_user` tool and `/ask-settings` command.
+After installation, the extension registers the `ask_user` tool plus `/ask-settings`, `/answer`, `/answer:again`, and `/ask:replay` commands.
 
 Agents can auto-discover and call `ask_user` when they need clarification instead of guessing. In interactive sessions, it opens a terminal UI flow for structured answers, supports native pi-style `@` file references while typing answers or notes, and returns normalized answers back to the agent. Ask settings are available both from `?` in the ask flow and from the `/ask-settings` command. Behaviour settings are binary `on`/`off` toggles that save immediately; customizable ask keymaps are changed by editing the shown config file path.
+
+### Answer and replay commands
+
+`/answer` is useful when the agent asked questions in plain text instead of using `ask_user`. It extracts questions from the latest completed assistant message and opens the same ask UI.
+
+Replay commands are branch-aware. They read persisted entries from the current pi session branch, so they work naturally with `/resume`, `/tree`, and conversation branching:
+
+- `/answer:again` reopens the latest form created by `/answer` on this branch
+- `/ask:replay` reopens the latest real `ask_user` form on this branch
+
+Cancellation is local to the UI: closing a replayed form does not start a new agent turn. Submitted answers are sent back as a normal user follow-up message.
 
 You can also talk to pi to configure this extension. When asked to customize pi-ask settings or keymaps, the agent is instructed to read the bundled `docs/configuration.md` guide first and then edit the config file accordingly.
 

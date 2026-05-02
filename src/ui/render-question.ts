@@ -76,7 +76,7 @@ function renderStandardOption(
 
 	pushWrappedText(
 		lines,
-		`${row.index + 1}. ${row.prefix}${row.label}`,
+		formatOptionLabel(row),
 		context.width,
 		context.theme,
 		row.color,
@@ -179,11 +179,16 @@ function renderOptionDetail(
 	lines: string[],
 	detail: OptionDetailModel | undefined,
 	context: QuestionRenderContext,
-	options: { suppressLeadingGap?: boolean } = {}
+	options: { indent?: string; suppressLeadingGap?: boolean } = {}
 ) {
 	if (!detail) {
 		return;
 	}
+	const indent = options.indent ?? "     ";
+	const padding =
+		indent === " "
+			? UI_DIMENSIONS.editorContentPadding
+			: UI_DIMENSIONS.editorIndentedPadding;
 	if (detail.withGap && !options.suppressLeadingGap) {
 		lines.push("");
 	}
@@ -193,8 +198,8 @@ function renderOptionDetail(
 			editor: context.editor,
 			width: context.width,
 			theme: context.theme,
-			indent: "     ",
-			padding: UI_DIMENSIONS.editorIndentedPadding,
+			indent,
+			padding,
 			placeholder: detail.placeholder,
 		});
 		return;
@@ -205,7 +210,7 @@ function renderOptionDetail(
 			note: detail.text,
 			width: context.width,
 			theme: context.theme,
-			indent: "     ",
+			indent,
 		});
 		return;
 	}
@@ -215,8 +220,8 @@ function renderOptionDetail(
 		context.width,
 		context.theme,
 		"muted",
-		"     ",
-		"     "
+		indent,
+		indent
 	);
 }
 
@@ -244,29 +249,29 @@ function renderEditorWithIndent(args: {
 	});
 }
 
+function formatOptionLabel(row: OptionRowModel): string {
+	return row.isFreeformOnly
+		? row.label
+		: `${row.index + 1}. ${row.prefix}${row.label}`;
+}
+
 function renderInteractiveCustomOption(
 	lines: string[],
 	row: OptionRowModel,
 	context: QuestionRenderContext
 ) {
+	const indent = row.isFreeformOnly ? " " : row.pointer;
 	pushWrappedText(
 		lines,
-		`${row.index + 1}. ${row.prefix}${row.label}`,
+		formatOptionLabel(row),
 		context.width,
 		context.theme,
 		row.color,
-		row.pointer,
-		" ".repeat(visibleWidth(row.pointer))
+		indent,
+		" ".repeat(visibleWidth(indent))
 	);
-	renderEditorWithIndent({
-		lines,
-		editor: context.editor,
-		width: context.width,
-		theme: context.theme,
-		indent: "     ",
-		padding: UI_DIMENSIONS.editorIndentedPadding,
-		placeholder:
-			row.detail?.kind === "editor" ? row.detail.placeholder : "Type answer...",
+	renderOptionDetail(lines, row.detail, context, {
+		indent: row.isFreeformOnly ? " " : undefined,
 	});
 }
 

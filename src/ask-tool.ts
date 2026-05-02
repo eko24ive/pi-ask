@@ -2,6 +2,7 @@ import type {
 	ExtensionAPI,
 	ExtensionContext,
 } from "@mariozechner/pi-coding-agent";
+import { appendAskPayload } from "./ask-payload-store.ts";
 import {
 	ASK_TOOL_DESCRIPTION,
 	ASK_TOOL_PROMPT_GUIDELINES,
@@ -25,16 +26,25 @@ export function registerAskTool(pi: ExtensionAPI) {
 			"Clarify ambiguous or preference-sensitive decisions with a short interactive interview before proceeding",
 		promptGuidelines: [...ASK_TOOL_PROMPT_GUIDELINES],
 		parameters: AskParamsSchema,
-		execute: executeAskTool,
+		execute: (toolCallId, params, signal, onUpdate, ctx) =>
+			executeAskTool(
+				pi,
+				toolCallId,
+				params as AskParams,
+				signal,
+				onUpdate,
+				ctx
+			),
 		renderCall: renderAskToolCall,
 		renderResult: renderAskToolResult,
 	});
 }
 
-interface ExecuteContext extends Pick<ExtensionContext, "cwd" | "hasUI"> {}
+interface ExecuteContext extends ExtensionContext {}
 
 async function executeAskTool(
-	_toolCallId: string,
+	pi: Pick<ExtensionAPI, "appendEntry">,
+	toolCallId: string,
 	params: AskParams,
 	_signal: AbortSignal | undefined,
 	_onUpdate: unknown,
@@ -44,6 +54,11 @@ async function executeAskTool(
 	if (!validation.ok) {
 		return invalidPayloadResponse(params, validation.issues);
 	}
+	appendAskPayload(pi, {
+		params,
+		source: "tool",
+		sourceEntryId: toolCallId,
+	});
 	if (!ctx.hasUI) {
 		return nonInteractiveResponse(validation.state);
 	}

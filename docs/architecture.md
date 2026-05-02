@@ -14,7 +14,10 @@ The codebase is split so the implementation reads through file boundaries and na
 ### Tool surface
 
 - `src/index.ts` — extension entrypoint
-- `src/ask-tool.ts` — tool registration, non-interactive fallback, transcript rendering
+- `src/ask-tool.ts` — tool registration, non-interactive fallback, transcript rendering, ask payload capture
+- `src/answer-commands.ts` — `/answer`, `/answer:again`, and `/ask:replay` command wiring
+- `src/answer-extraction.ts` — configured extraction model selection and raw-JSON extraction retries
+- `src/ask-payload-store.ts` — branch-aware persisted ask payload lookup
 - `src/schema.ts` — TypeBox schema
 - `src/types.ts` — shared types
 
@@ -72,6 +75,7 @@ The codebase is split so the implementation reads through file boundaries and na
 - editor lifecycle stays in the controller, not in the reducers
 - persisted ask settings are migrated to the current schema version, validated, and normalized before use
 - config schema migrations preserve user-provided values and add new defaults only when fields are absent
+- replay payload lookup scans only the current session branch and revalidates payloads before use
 - invalid persisted keymaps fall back to default keymaps for the current session without discarding valid behaviour settings
 - ask settings behaviour changes persist immediately from the settings list
 - when the ask config file is missing, the first ask use writes a default persisted config snapshot under `~/.pi/agent/extensions/`

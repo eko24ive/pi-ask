@@ -26,6 +26,7 @@ export interface OptionRowModel {
 	detail?: OptionDetailModel;
 	index: number;
 	isCustom: boolean;
+	isFreeformOnly: boolean;
 	label: string;
 	pointer: string;
 	prefix: string;
@@ -89,6 +90,7 @@ function buildOptionRowModel(
 	const answered = option.isCustomOption
 		? !!answer?.customText
 		: isOptionSelected(answer, option.value);
+	const pointer = getOptionPointer(option, selected);
 	return {
 		color: getOptionColor(answered, selected),
 		description: option.description,
@@ -98,11 +100,19 @@ function buildOptionRowModel(
 				: buildOptionDetailModel(context, option, selected),
 		index,
 		isCustom: !!option.isCustomOption,
+		isFreeformOnly: !!option.isFreeformOnlyOption,
 		label: option.label,
-		pointer: selected ? "❯ " : "  ",
+		pointer,
 		prefix: getOptionPrefix(question.type, option, answered),
 		selected,
 	};
+}
+
+function getOptionPointer(option: AskDisplayOption, selected: boolean): string {
+	if (option.isFreeformOnlyOption) {
+		return "";
+	}
+	return selected ? "❯ " : "  ";
 }
 
 function buildOptionDetailModel(
@@ -139,11 +149,15 @@ function buildOptionDetailModel(
 		return {
 			kind: "editor",
 			placeholder: UI_TEXT.editorPlaceholderInput,
-			withGap: false,
+			withGap: !!option.isFreeformOnlyOption,
 		};
 	}
 	if (customText) {
-		return { kind: "custom-text", text: customText, withGap: false };
+		return {
+			kind: "custom-text",
+			text: customText,
+			withGap: !!option.isFreeformOnlyOption,
+		};
 	}
 	if (note) {
 		return { kind: "saved-note", text: note, withGap: false };

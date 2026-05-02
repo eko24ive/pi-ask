@@ -189,6 +189,47 @@ test("selected multiline custom option renders full editor block", () => {
 	assert(!lines.some((line) => line.includes("first line second line")));
 });
 
+test("freeform-only question renders label without numbering or pointer and separates input", () => {
+	const state = createInitialState(
+		{
+			questions: [
+				{
+					id: "q1",
+					prompt: "Type one",
+					options: [
+						{ value: "freeform", label: "Type answer", freeform: true },
+					],
+				},
+			],
+		},
+		{ allowFreeform: true }
+	);
+
+	const lines: string[] = [];
+	renderQuestionScreen({
+		editor: mockEditor("", ["┌────┐", "", "└────┘"]),
+		lines,
+		options: getRenderableOptions(state.questions[0]),
+		question: state.questions[0],
+		state: { ...state, view: { kind: "input", questionId: "q1" } },
+		theme: mockTheme(),
+		width: 80,
+	});
+
+	const labelIndex = lines.findIndex((line) =>
+		line.includes("Type your answer:")
+	);
+	const inputIndex = lines.findIndex((line) => line.includes("Type answer..."));
+
+	assert.notEqual(labelIndex, -1);
+	assert.equal(inputIndex, labelIndex + 2);
+	assert(lines[labelIndex]?.startsWith(" "));
+	assert(lines[inputIndex]?.startsWith(" "));
+	assert(!lines[inputIndex]?.startsWith("     "));
+	assert(!lines.some((line) => line.includes("1. Type your answer:")));
+	assert(!lines.some((line) => line.includes("❯")));
+});
+
 test("preview questions also show the custom answer option", () => {
 	const state = createInitialState({
 		questions: [

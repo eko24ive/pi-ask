@@ -6,6 +6,9 @@ const DUPLICATE_QUESTION_ID_RE = /duplicate question id "scope"/;
 const DUPLICATE_OPTION_VALUE_RE = /duplicate option value "small"/;
 const PREVIEW_REQUIRED_RE =
 	/preview questions require preview text for every option/;
+const FREEFORM_UNSUPPORTED_RE =
+	/freeform options are only supported for \/answer forms/;
+const FREEFORM_MIXED_RE = /freeform options must be the only option/;
 
 import { toAskResult } from "../src/state/result.ts";
 import { getRenderableOptions } from "../src/state/selectors.ts";
@@ -73,6 +76,68 @@ test("normalize defaults via initial state", () => {
 	assert.equal(
 		getRenderableOptions(state.questions[0]).at(-1)?.isCustomOption,
 		true
+	);
+});
+
+test("answer freeform questions render only the custom input option", () => {
+	const state = createInitialState(
+		{
+			questions: [
+				{
+					id: "language",
+					prompt: "Which language do you want to learn?",
+					options: [
+						{ value: "freeform", label: "Type answer", freeform: true },
+					],
+				},
+			],
+		},
+		{ allowFreeform: true }
+	);
+
+	const options = getRenderableOptions(state.questions[0]);
+	assert.equal(options.length, 1);
+	assert.equal(options[0]?.label, "Type your answer:");
+	assert.equal(options[0]?.isCustomOption, true);
+});
+
+test("freeform questions are rejected unless explicitly allowed", () => {
+	assert.throws(
+		() =>
+			createInitialState({
+				questions: [
+					{
+						id: "language",
+						prompt: "Which language do you want to learn?",
+						options: [
+							{ value: "freeform", label: "Type answer", freeform: true },
+						],
+					},
+				],
+			}),
+		FREEFORM_UNSUPPORTED_RE
+	);
+});
+
+test("freeform questions cannot mix normal options", () => {
+	assert.throws(
+		() =>
+			createInitialState(
+				{
+					questions: [
+						{
+							id: "language",
+							prompt: "Which language do you want to learn?",
+							options: [
+								{ value: "freeform", label: "Type answer", freeform: true },
+								{ value: "french", label: "French" },
+							],
+						},
+					],
+				},
+				{ allowFreeform: true }
+			),
+		FREEFORM_MIXED_RE
 	);
 });
 
