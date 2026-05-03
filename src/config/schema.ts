@@ -32,6 +32,8 @@ export const AskConfigFileV2Schema = Type.Object({
 			dismiss: Type.Optional(Type.String()),
 			optionNote: Type.Optional(Type.String()),
 			questionNote: Type.Optional(Type.String()),
+			nextOption: Type.Optional(Type.String()),
+			previousOption: Type.Optional(Type.String()),
 			toggle: Type.Optional(Type.String()),
 		})
 	),
@@ -54,7 +56,9 @@ export interface AskConfigKeymaps {
 	cancel: string;
 	confirm: string;
 	dismiss: string;
+	nextOption: string;
 	optionNote: string;
+	previousOption: string;
 	questionNote: string;
 	toggle: string;
 }

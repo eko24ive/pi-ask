@@ -22,22 +22,14 @@ function inputState() {
 	return state;
 }
 
-test("empty typing mode uses arrows, Ctrl-P, Ctrl-N, and tab for navigation", () => {
+test("empty typing mode uses arrows and tab for navigation", () => {
 	const input = inputState();
 
 	assert.deepEqual(getInputCommand(input, DEFAULT_ASK_CONFIG, "\x1b[A", ""), {
 		kind: "editMoveOption",
 		delta: -1,
 	});
-	assert.deepEqual(getInputCommand(input, DEFAULT_ASK_CONFIG, "\x10", ""), {
-		kind: "editMoveOption",
-		delta: -1,
-	});
 	assert.deepEqual(getInputCommand(input, DEFAULT_ASK_CONFIG, "\x1b[B", ""), {
-		kind: "editMoveOption",
-		delta: 1,
-	});
-	assert.deepEqual(getInputCommand(input, DEFAULT_ASK_CONFIG, "\x0e", ""), {
 		kind: "editMoveOption",
 		delta: 1,
 	});
@@ -82,7 +74,7 @@ test("non-empty typing mode keeps arrows and tab in editor", () => {
 	});
 });
 
-test("empty note editing mode uses arrows, Ctrl-P, Ctrl-N, and tab for navigation", () => {
+test("empty note editing mode uses arrows and tab for navigation", () => {
 	const state = enterQuestionNoteMode(
 		createInitialState({
 			questions: [
@@ -100,15 +92,7 @@ test("empty note editing mode uses arrows, Ctrl-P, Ctrl-N, and tab for navigatio
 		kind: "editMoveOption",
 		delta: -1,
 	});
-	assert.deepEqual(getInputCommand(state, DEFAULT_ASK_CONFIG, "\x10", ""), {
-		kind: "editMoveOption",
-		delta: -1,
-	});
 	assert.deepEqual(getInputCommand(state, DEFAULT_ASK_CONFIG, "\x1b[B", ""), {
-		kind: "editMoveOption",
-		delta: 1,
-	});
-	assert.deepEqual(getInputCommand(state, DEFAULT_ASK_CONFIG, "\x0e", ""), {
 		kind: "editMoveOption",
 		delta: 1,
 	});
@@ -204,7 +188,7 @@ test("question mark opens ask settings outside non-empty editors", () => {
 	});
 });
 
-test("navigation mode uses Ctrl-P and Ctrl-N for option movement", () => {
+test("navigation mode uses configured option movement keymaps", () => {
 	const navigation = createInitialState({
 		questions: [
 			{
@@ -214,14 +198,28 @@ test("navigation mode uses Ctrl-P and Ctrl-N for option movement", () => {
 			},
 		],
 	});
+	const config = {
+		...DEFAULT_ASK_CONFIG,
+		keymaps: {
+			...DEFAULT_ASK_CONFIG.keymaps,
+			previousOption: "ctrl+p",
+			nextOption: "ctrl+n",
+		},
+	};
 
-	assert.deepEqual(getInputCommand(navigation, DEFAULT_ASK_CONFIG, "\x10"), {
+	assert.deepEqual(getInputCommand(navigation, config, "\x10"), {
 		kind: "moveOption",
 		delta: -1,
 	});
-	assert.deepEqual(getInputCommand(navigation, DEFAULT_ASK_CONFIG, "\x0e"), {
+	assert.deepEqual(getInputCommand(navigation, config, "\x0e"), {
 		kind: "moveOption",
 		delta: 1,
+	});
+	assert.deepEqual(getInputCommand(navigation, config, "\x1b[A"), {
+		kind: "ignore",
+	});
+	assert.deepEqual(getInputCommand(navigation, config, "\x1b[B"), {
+		kind: "ignore",
 	});
 });
 

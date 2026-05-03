@@ -22,6 +22,8 @@ const savedConfig: AskConfig = {
 		confirm: "enter",
 		optionNote: "n",
 		questionNote: "shift+n",
+		previousOption: "up",
+		nextOption: "down",
 	},
 };
 

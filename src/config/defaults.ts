@@ -90,6 +90,8 @@ export function toAskConfigFileV2(config: AskConfig): AskConfigFileV2 {
 			confirm: normalized.keymaps.confirm,
 			optionNote: normalized.keymaps.optionNote,
 			questionNote: normalized.keymaps.questionNote,
+			previousOption: normalized.keymaps.previousOption,
+			nextOption: normalized.keymaps.nextOption,
 		},
 	};
 }

@@ -253,7 +253,7 @@ test("footer keeps earlier hint chunk on the first wrapped line", () => {
 		editor: mockEditor(),
 	});
 
-	assert.equal(lines.at(-6), " ⇆ tab · ↑↓ select");
+	assert.equal(lines.at(-6), " ⇆ tab · ↑/↓ select");
 	assert.deepEqual(lines.slice(-5, -1), [
 		"Enter confirm",
 		"N/Shift+N note",

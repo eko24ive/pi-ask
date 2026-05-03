@@ -50,7 +50,9 @@ Unsupported future versions or invalid files are backed up and defaults are load
     "toggle": "space",
     "confirm": "enter",
     "optionNote": "n",
-    "questionNote": "shift+n"
+    "questionNote": "shift+n",
+    "previousOption": "up",
+    "nextOption": "down"
   }
 }
 ```
@@ -109,7 +111,7 @@ These settings affect only the `/answer` command. Normal `ask_user` tool calls d
 
 ## Keymaps
 
-`keymaps` must contain all 6 configurable actions if present.
+`keymaps` can override any configurable action. Missing actions use defaults.
 
 ### Configurable actions
 
@@ -119,6 +121,8 @@ These settings affect only the `/answer` command. Normal `ask_user` tool calls d
 - `confirm`
 - `optionNote`
 - `questionNote`
+- `previousOption`
+- `nextOption`
 
 ### Defaults
 
@@ -128,6 +132,8 @@ These settings affect only the `/answer` command. Normal `ask_user` tool calls d
 - `confirm: "enter"`
 - `optionNote: "n"`
 - `questionNote: "shift+n"`
+- `previousOption: "up"`
+- `nextOption: "down"`
 
 ### Allowed bindings
 
@@ -172,8 +178,6 @@ These bindings are fixed and cannot be used by configurable actions:
 - `shift+tab`
 - `left`
 - `right`
-- `up`
-- `down`
 - `1`
 - `2`
 - `3`
@@ -190,7 +194,6 @@ These are intentionally not configurable:
 
 - `?` opens ask settings
 - `tab`, `shift+tab`, `left`, `right` move between tabs
-- `ctrl+p`/`up` and `ctrl+n`/`down` move between options/actions
 - `1..9` triggers option/review shortcuts
 - when `behaviour.doublePressReviewShortcuts` is enabled, review-tab shortcuts `1`, `2`, and `3` require the same key twice
 - `@` remains file-reference affordance in editors
@@ -207,7 +210,6 @@ If configured keymaps are invalid:
 
 Invalid keymaps include:
 
-- missing one of the 6 required actions
 - unsupported key syntax
 - duplicate bindings across configurable actions
 - use of reserved bindings
@@ -236,7 +238,9 @@ Invalid keymaps include:
     "toggle": "ctrl+t",
     "confirm": "ctrl+k",
     "optionNote": "x",
-    "questionNote": "shift+x"
+    "questionNote": "shift+x",
+    "previousOption": "ctrl+p",
+    "nextOption": "ctrl+n"
   }
 }
 ```

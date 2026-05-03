@@ -109,6 +109,8 @@ Customizable via config:
 | Confirm / continue / save / submit | `Enter` |
 | Edit selected option note | `n` |
 | Edit question note | `Shift+N` |
+| Move to previous option/action | `↑` |
+| Move to next option/action | `↓` |
 
 Fixed bindings:
 
@@ -117,11 +119,9 @@ Fixed bindings:
 | `?`                         | Ask flow / empty editor                 | Open ask settings                           |
 | `Tab` `Shift+Tab`           | Main flow                               | Switch tabs                                 |
 | `←` `→`                     | Main flow                               | Switch tabs                                 |
-| `Ctrl+P` `Ctrl+N` / `↑` `↓` | Main flow                               | Move cursor                                 |
 | `1..9`                      | Options list                            | Select or toggle matching option            |
 | `1` `2` `3`                 | Review tab                              | Trigger `Submit` / `Elaborate` / `Cancel`   |
 | `↑` `↓`                     | Review tab                              | Change highlighted review action            |
-| `Ctrl+P` `Ctrl+N` / `↑` `↓` | Empty editor                            | Move options without closing editor         |
 | `Tab` `Shift+Tab` / `←` `→` | Empty editor                            | Switch tabs without closing editor          |
 | Arrow keys / `Tab`          | Non-empty editor                        | Stay in editor for cursor movement          |
 
@@ -155,7 +155,9 @@ You can edit this file yourself, ask pi to edit it for you, or use `/ask-setting
     "toggle": "space",
     "confirm": "enter",
     "optionNote": "n",
-    "questionNote": "shift+n"
+    "questionNote": "shift+n",
+    "previousOption": "up",
+    "nextOption": "down"
   }
 }
 ```

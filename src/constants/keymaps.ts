@@ -43,8 +43,6 @@ const RESERVED_CONFIGURABLE_BINDINGS = new Set([
 	"shift+tab",
 	"left",
 	"right",
-	"up",
-	"down",
 	"1",
 	"2",
 	"3",
@@ -58,8 +56,6 @@ const RESERVED_CONFIGURABLE_BINDINGS = new Set([
 const ACTION_LABEL_OVERRIDES: Partial<Record<AskKeyBindingId, string>> = {
 	nextTab: "Tab / →",
 	previousTab: "Shift+Tab / ←",
-	previousOption: "↑ / ↓",
-	nextOption: "↓",
 	numberShortcut: "1..9",
 };
 
@@ -83,8 +79,6 @@ export type AskFixedKeyBindingId =
 	| "settings"
 	| "nextTab"
 	| "previousTab"
-	| "previousOption"
-	| "nextOption"
 	| "numberShortcut"
 	| "fileReference";
 export type AskKeyBindingId = AskConfigurableKeyAction | AskFixedKeyBindingId;
@@ -112,6 +106,8 @@ export const DEFAULT_ASK_KEYMAPS: AskConfigKeymaps = {
 	confirm: "enter",
 	optionNote: "n",
 	questionNote: "shift+n",
+	previousOption: "up",
+	nextOption: "down",
 };
 
 const CONFIGURABLE_BINDING_METADATA: readonly ConfigurableBindingMetadata[] = [
@@ -151,6 +147,18 @@ const CONFIGURABLE_BINDING_METADATA: readonly ConfigurableBindingMetadata[] = [
 		description: "Edit question note",
 		contexts: ["Question tabs"],
 	},
+	{
+		id: "previousOption",
+		kind: "command",
+		description: "Move to previous option/action",
+		contexts: ["Main flow", "Empty editor"],
+	},
+	{
+		id: "nextOption",
+		kind: "command",
+		description: "Move to next option/action",
+		contexts: ["Main flow", "Empty editor"],
+	},
 ] as const;
 
 const FIXED_BINDING_METADATA: readonly FixedBindingMetadata[] = [
@@ -173,20 +181,6 @@ const FIXED_BINDING_METADATA: readonly FixedBindingMetadata[] = [
 		keys: [Key.shift("tab"), Key.left],
 		kind: "command",
 		description: "Switch to previous tab",
-		contexts: ["Main flow", "Empty editor"],
-	},
-	{
-		id: "previousOption",
-		keys: [Key.ctrl("p"), Key.up],
-		kind: "command",
-		description: "Move to previous option/action",
-		contexts: ["Main flow", "Empty editor"],
-	},
-	{
-		id: "nextOption",
-		keys: [Key.ctrl("n"), Key.down],
-		kind: "command",
-		description: "Move to next option/action",
 		contexts: ["Main flow", "Empty editor"],
 	},
 	{
@@ -219,10 +213,21 @@ export function formatKeybindingLabel(key: string): string {
 			if (part.length <= 1) {
 				return part.toUpperCase();
 			}
-			if (part === "pageUp" || part === "pageDown") {
-				return part;
+			switch (part) {
+				case "up":
+					return "↑";
+				case "down":
+					return "↓";
+				case "left":
+					return "←";
+				case "right":
+					return "→";
+				case "pageUp":
+				case "pageDown":
+					return part;
+				default:
+					return part.charAt(0).toUpperCase() + part.slice(1);
 			}
-			return part.charAt(0).toUpperCase() + part.slice(1);
 		})
 		.join("+");
 }
@@ -250,6 +255,8 @@ export function getAskKeyBindings(
 		confirm: createCustomizableBinding(config, "confirm"),
 		optionNote: createCustomizableBinding(config, "optionNote"),
 		questionNote: createCustomizableBinding(config, "questionNote"),
+		previousOption: createCustomizableBinding(config, "previousOption"),
+		nextOption: createCustomizableBinding(config, "nextOption"),
 	};
 	const fixed = Object.fromEntries(
 		FIXED_BINDING_METADATA.map((binding) => [
@@ -287,10 +294,7 @@ export function renderFooterKeymaps(
 	context: FooterKeymapContext
 ): string {
 	const bindings = getAskKeyBindings(config);
-	const optionNavigationLabel = bindings.previousOption.label.replaceAll(
-		" / ",
-		""
-	);
+	const optionNavigationLabel = `${bindings.previousOption.label}/${bindings.nextOption.label}`;
 	const tabNavigationLabel = "⇆";
 	const noteNavigationLabel = `${bindings.optionNote.label}/${bindings.questionNote.label}`;
 	const hintsByContext: Record<FooterKeymapContext, readonly string[]> = {
@@ -343,9 +347,9 @@ export function normalizeConfiguredKeymaps(
 	for (const action of Object.keys(
 		DEFAULT_ASK_KEYMAPS
 	) as AskConfigurableKeyAction[]) {
-		const rawValue = keymaps[action];
+		const rawValue = keymaps[action] ?? DEFAULT_ASK_KEYMAPS[action];
 		if (typeof rawValue !== "string") {
-			return { ok: false, error: `Missing keymap for ${action}.` };
+			return { ok: false, error: `Invalid keymap for ${action}: missing key` };
 		}
 		const parsed = normalizeKeyId(rawValue);
 		if (!parsed.ok) {
