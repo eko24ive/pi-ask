@@ -10,8 +10,7 @@ It lets an agent pause, ask structured questions in a terminal UI, and continue 
 
 ![pi-ask demo](docs/media/pi-ask-demo.gif)
 
-[Link to high-quality video](https://github.com/user-attachments/assets/a8503ca9-afcb-4c31-9edc-353b985a0209)
-
+High-quality video: [demo.mp4](https://github.com/user-attachments/assets/a8503ca9-afcb-4c31-9edc-353b985a0209)
 
 ## Install
 
@@ -51,20 +50,31 @@ Once installed, this package gives the agent a native way to ask for clarificati
 
 ## Feature walkthrough
 
-### Multi-question flow (tabs)
-Move across several related questions in one ask flow.
+### Native `@` file references
+Use pi-style `@` file path autocomplete inside free-form answers and note editors.
 
-![Multi-question ask_user flow with tab navigation](docs/media/feature-multi-question-tabs.png)
+![Native pi-style @ file references inside the ask flow](docs/media/feature-at-file-mentions.png)
 
-### Single-select question
-Pick one option when answers are mutually exclusive.
+### Option and question notes
+Attach clarification notes to a specific option (`n`) or add broader question-level context (`Shift+N`).
 
-![Single-select question with one selected option](docs/media/feature-single-select.png)
+| Option notes | Question notes |
+|---|---|
+| ![Option note editor with note text for selected option](docs/media/feature-option-note.png) | ![Question-level note editor with saved note](docs/media/feature-question-note.png) |
 
-### Multi-select question
-Choose multiple options when several answers apply.
+### Review tab — Elaborate and Submit
+Ask the agent to elaborate on notes before finalizing choices, or review all answers before returning them to the agent.
 
-![Multi-select question with multiple selected options](docs/media/feature-multi-select.png)
+| Elaborate | Submit |
+|---|---|
+| ![Review tab with Elaborate action and expanded note preview](docs/media/feature-review-elaborate.png) | ![Review tab with Submit action highlighted](docs/media/feature-review-submit.png) |
+
+### Single-select and multi-select questions
+Pick one option when answers are mutually exclusive, or choose multiple options when several answers apply.
+
+| Single-select | Multi-select |
+|---|---|
+| ![Single-select question with one selected option](docs/media/feature-single-select.png) | ![Multi-select question with multiple selected options](docs/media/feature-multi-select.png) |
 
 ### Preview mode
 Use a dedicated preview pane when options need richer detail.
@@ -75,31 +85,6 @@ Use a dedicated preview pane when options need richer detail.
 Capture free-form input inline without leaving the flow.
 
 ![Inline custom answer input for Type your own option](docs/media/feature-custom-answer-input.png)
-
-### Native `@` file references
-Use pi-style `@` file path autocomplete inside free-form answers and note editors.
-
-![Native pi-style @ file references inside the ask flow](docs/media/feature-at-file-mentions.png)
-
-### Option notes
-Attach clarification notes to a specific option (`n`).
-
-![Option note editor with note text for selected option](docs/media/feature-option-note.png)
-
-### Question notes
-Add notes at question level for broader context (`Shift+N`).
-
-![Question-level note editor with saved note](docs/media/feature-question-note.png)
-
-### Review tab — Submit
-Review all answers before returning them to the agent.
-
-![Review tab with Submit action highlighted](docs/media/feature-review-submit.png)
-
-### Review tab — Elaborate
-Ask the agent to elaborate on notes before finalizing choices.
-
-![Review tab with Elaborate action and expanded note preview](docs/media/feature-review-elaborate.png)
 
 ## Default key bindings
 
