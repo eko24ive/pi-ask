@@ -188,7 +188,7 @@ test("question mark opens ask settings outside non-empty editors", () => {
 	});
 });
 
-test("navigation mode uses configured option movement keymaps", () => {
+test("navigation mode uses configured option movement keymaps with arrow aliases", () => {
 	const navigation = createInitialState({
 		questions: [
 			{
@@ -216,10 +216,41 @@ test("navigation mode uses configured option movement keymaps", () => {
 		delta: 1,
 	});
 	assert.deepEqual(getInputCommand(navigation, config, "\x1b[A"), {
-		kind: "ignore",
+		kind: "moveOption",
+		delta: -1,
 	});
 	assert.deepEqual(getInputCommand(navigation, config, "\x1b[B"), {
-		kind: "ignore",
+		kind: "moveOption",
+		delta: 1,
+	});
+});
+
+test("empty editors use configured option movement keymaps with arrow aliases", () => {
+	const input = inputState();
+	const config = {
+		...DEFAULT_ASK_CONFIG,
+		keymaps: {
+			...DEFAULT_ASK_CONFIG.keymaps,
+			previousOption: "ctrl+p",
+			nextOption: "ctrl+n",
+		},
+	};
+
+	assert.deepEqual(getInputCommand(input, config, "\x10", ""), {
+		kind: "editMoveOption",
+		delta: -1,
+	});
+	assert.deepEqual(getInputCommand(input, config, "\x0e", ""), {
+		kind: "editMoveOption",
+		delta: 1,
+	});
+	assert.deepEqual(getInputCommand(input, config, "\x1b[A", ""), {
+		kind: "editMoveOption",
+		delta: -1,
+	});
+	assert.deepEqual(getInputCommand(input, config, "\x1b[B", ""), {
+		kind: "editMoveOption",
+		delta: 1,
 	});
 });
 

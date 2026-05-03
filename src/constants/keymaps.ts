@@ -53,6 +53,10 @@ const RESERVED_CONFIGURABLE_BINDINGS = new Set([
 	"8",
 	"9",
 ]);
+const BUILT_IN_OPTION_NAVIGATION_KEYS = {
+	previousOption: "up",
+	nextOption: "down",
+} as const;
 const ACTION_LABEL_OVERRIDES: Partial<Record<AskKeyBindingId, string>> = {
 	nextTab: "Tab / →",
 	previousTab: "Shift+Tab / ←",
@@ -294,7 +298,7 @@ export function renderFooterKeymaps(
 	context: FooterKeymapContext
 ): string {
 	const bindings = getAskKeyBindings(config);
-	const optionNavigationLabel = `${bindings.previousOption.label}/${bindings.nextOption.label}`;
+	const optionNavigationLabel = formatOptionNavigationLabel(bindings);
 	const tabNavigationLabel = "⇆";
 	const noteNavigationLabel = `${bindings.optionNote.label}/${bindings.questionNote.label}`;
 	const hintsByContext: Record<FooterKeymapContext, readonly string[]> = {
@@ -358,11 +362,8 @@ export function normalizeConfiguredKeymaps(
 				error: `Invalid keymap for ${action}: ${parsed.error}`,
 			};
 		}
-		if (RESERVED_CONFIGURABLE_BINDINGS.has(parsed.keyId)) {
-			return {
-				ok: false,
-				error: `Reserved keymap for ${action}: ${formatKeybindingLabel(parsed.keyId)}.`,
-			};
+		if (isReservedConfigurableKey(action, parsed.keyId)) {
+			return reservedKeymapError(action, parsed.keyId);
 		}
 		normalized[action] = parsed.keyId;
 	}
@@ -438,12 +439,72 @@ function createCustomizableBinding(
 	if (!binding) {
 		throw new Error(`Unknown customizable ask key binding: ${id}`);
 	}
-	const key = config.keymaps[id];
+	const configuredKey = config.keymaps[id];
+	const keys = [
+		...(id === "previousOption"
+			? [BUILT_IN_OPTION_NAVIGATION_KEYS.previousOption]
+			: []),
+		...(id === "nextOption"
+			? [BUILT_IN_OPTION_NAVIGATION_KEYS.nextOption]
+			: []),
+		configuredKey,
+	];
+	const uniqueBindingKeys = uniqueKeys(keys);
 	return {
 		...binding,
-		keys: [key],
-		label: formatKeybindingLabel(key),
+		keys: uniqueBindingKeys,
+		label: uniqueBindingKeys.map(formatKeybindingLabel).join("/"),
 	};
+}
+
+function uniqueKeys(keys: readonly string[]): readonly InputKey[] {
+	return [...new Set(keys)] as readonly InputKey[];
+}
+
+function formatOptionNavigationLabel(
+	bindings: Record<AskKeyBindingId, AskKeyBinding>
+): string {
+	return uniqueKeys([
+		BUILT_IN_OPTION_NAVIGATION_KEYS.previousOption,
+		BUILT_IN_OPTION_NAVIGATION_KEYS.nextOption,
+		...bindings.previousOption.keys.map(String),
+		...bindings.nextOption.keys.map(String),
+	])
+		.map(formatKeybindingLabel)
+		.join("/");
+}
+
+function isReservedConfigurableKey(
+	action: AskConfigurableKeyAction,
+	keyId: string
+): boolean {
+	return (
+		RESERVED_CONFIGURABLE_BINDINGS.has(keyId) ||
+		isReservedOptionNavigationKey(action, keyId)
+	);
+}
+
+function reservedKeymapError(
+	action: AskConfigurableKeyAction,
+	keyId: string
+): { ok: false; error: string } {
+	return {
+		ok: false,
+		error: `Reserved keymap for ${action}: ${formatKeybindingLabel(keyId)}.`,
+	};
+}
+
+function isReservedOptionNavigationKey(
+	action: AskConfigurableKeyAction,
+	keyId: string
+): boolean {
+	if (keyId === "up") {
+		return action !== "previousOption";
+	}
+	if (keyId === "down") {
+		return action !== "nextOption";
+	}
+	return false;
 }
 
 function normalizeModifierName(part: string): ModifierName | undefined {

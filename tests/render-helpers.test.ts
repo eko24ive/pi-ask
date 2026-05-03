@@ -100,3 +100,19 @@ test("editing footers use configured key labels", () => {
 		" Ctrl+K save · Q close · ? settings"
 	);
 });
+
+test("navigation footers show arrows and configured option aliases", () => {
+	const config = {
+		...DEFAULT_ASK_CONFIG,
+		keymaps: {
+			...DEFAULT_ASK_CONFIG.keymaps,
+			previousOption: "ctrl+p",
+			nextOption: "ctrl+n",
+		},
+	};
+
+	assert.equal(
+		renderFooterText(config, "default"),
+		" ⇆ tab · ↑/↓/Ctrl+P/Ctrl+N select · Enter confirm · N/Shift+N note · Esc dismiss · ? settings"
+	);
+});

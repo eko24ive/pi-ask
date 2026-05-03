@@ -143,6 +143,8 @@ Each configurable action accepts any single `pi-tui` key id string, as long as i
 - not reserved
 - not duplicated across configurable actions
 
+`previousOption` and `nextOption` add aliases. `up` and `down` always continue to move between options. Keep the defaults if you want the footer to show only `↑/↓`.
+
 Examples of valid bindings:
 
 - `esc`
@@ -178,6 +180,8 @@ These bindings are fixed and cannot be used by configurable actions:
 - `shift+tab`
 - `left`
 - `right`
+- `up`, except as the default `previousOption`
+- `down`, except as the default `nextOption`
 - `1`
 - `2`
 - `3`
@@ -194,6 +198,7 @@ These are intentionally not configurable:
 
 - `?` opens ask settings
 - `tab`, `shift+tab`, `left`, `right` move between tabs
+- `up`, `down` move between options, even when option navigation aliases are configured
 - `1..9` triggers option/review shortcuts
 - when `behaviour.doublePressReviewShortcuts` is enabled, review-tab shortcuts `1`, `2`, and `3` require the same key twice
 - `@` remains file-reference affordance in editors
@@ -222,9 +227,7 @@ Invalid keymaps include:
   "answer": {
     "extractionRetries": 1,
     "extractionTimeoutMs": 30000,
-    "extractionModels": [
-      { "provider": "openai-codex", "id": "gpt-5.4-mini" }
-    ]
+    "extractionModels": [{ "provider": "openai-codex", "id": "gpt-5.4-mini" }]
   },
   "behaviour": {
     "autoSubmitWhenAnsweredWithoutNotes": true,
