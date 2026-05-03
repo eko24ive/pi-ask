@@ -124,7 +124,9 @@ async function extractAndValidateAnswerParams(
 	selected: ExtractionSelection,
 	config: Awaited<ReturnType<ReturnType<typeof getAskConfigStore>["getConfig"]>>
 ): Promise<AskParams | undefined> {
-	const extraction = await runExtractionUi(ctx, assistant, selected, config);
+	const extraction = await withHiddenWorkingRow(ctx, () =>
+		runExtractionUi(ctx, assistant, selected, config)
+	);
 	if ("cancelled" in extraction) {
 		ctx.ui.notify("Question extraction cancelled.", "info");
 		return;
@@ -267,12 +269,26 @@ async function runAskAndSendSubmittedResult(
 	params: AskParams,
 	options: { allowFreeform: boolean }
 ): Promise<void> {
-	const result = await runAskFlow(ctx, params, options);
+	const result = await withHiddenWorkingRow(ctx, () =>
+		runAskFlow(ctx, params, options)
+	);
 	if (result.cancelled) {
 		ctx.ui.notify("Ask form cancelled.", "info");
 		return;
 	}
 	sendAskResult(pi, result, ctx);
+}
+
+async function withHiddenWorkingRow<T>(
+	ctx: ExtensionContext,
+	run: () => Promise<T>
+): Promise<T> {
+	ctx.ui.setWorkingVisible(false);
+	try {
+		return await run();
+	} finally {
+		ctx.ui.setWorkingVisible(true);
+	}
 }
 
 function sendAskResult(

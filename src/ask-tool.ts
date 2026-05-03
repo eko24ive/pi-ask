@@ -60,6 +60,11 @@ async function executeAskTool(
 	if (!ctx.hasUI) {
 		return nonInteractiveResponse(validation.state);
 	}
-	const result = await runAskFlow(ctx, params);
-	return successfulResponse(result);
+	ctx.ui.setWorkingVisible(false);
+	try {
+		const result = await runAskFlow(ctx, params);
+		return successfulResponse(result);
+	} finally {
+		ctx.ui.setWorkingVisible(true);
+	}
 }
