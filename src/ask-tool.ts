@@ -40,15 +40,13 @@ export function registerAskTool(pi: ExtensionAPI) {
 	});
 }
 
-interface ExecuteContext extends ExtensionContext {}
-
 async function executeAskTool(
 	pi: Pick<ExtensionAPI, "appendEntry">,
 	toolCallId: string,
 	params: AskParams,
 	_signal: AbortSignal | undefined,
 	_onUpdate: unknown,
-	ctx: ExecuteContext
+	ctx: ExtensionContext
 ) {
 	const validation = validateParams(params);
 	if (!validation.ok) {
@@ -62,6 +60,6 @@ async function executeAskTool(
 	if (!ctx.hasUI) {
 		return nonInteractiveResponse(validation.state);
 	}
-	const result = await runAskFlow(ctx as never, params);
+	const result = await runAskFlow(ctx, params);
 	return successfulResponse(result);
 }

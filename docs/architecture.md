@@ -48,7 +48,6 @@ The codebase is split so the implementation reads through file boundaries and na
 - `src/ui/render.ts` and `src/ui/render-*.ts` — screen rendering, including config-backed footer/keymap hints
 - `src/ui/settings-list.ts` / `src/ui/show-settings.ts` — lightweight ask settings list rendering and launcher
 - `src/ui/constants.ts` and `src/ui/render-types.ts` — rendering constants/contracts
-- `src/ask-component.ts` — thin custom UI export
 
 ### Result formatting
 
