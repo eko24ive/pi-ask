@@ -29,7 +29,7 @@ interface AskSettingsListOptions {
 const DESCRIPTION_LINE_COUNT = 3;
 const COMPACT_WIDTH = 40;
 
-const BEHAVIOUR_SETTINGS = [
+const SETTINGS = [
 	{
 		description:
 			"Auto-submit completed ask flows when no question or option notes were added.",
@@ -49,13 +49,19 @@ const BEHAVIOUR_SETTINGS = [
 		label: "Double-press review shortcuts",
 	},
 	{
+		description:
+			"Emit one external notification when the ask flow opens and waits for input.",
+		key: "notifications.enabled",
+		label: "Notifications",
+	},
+	{
 		description: "Show footer keymap hints at the bottom of the ask flow.",
 		key: "showFooterHints",
 		label: "Show footer hints",
 	},
 ] as const;
 
-type BehaviourKey = (typeof BEHAVIOUR_SETTINGS)[number]["key"];
+type SettingKey = (typeof SETTINGS)[number]["key"];
 
 export class AskSettingsList {
 	private closed = false;
@@ -90,21 +96,19 @@ export class AskSettingsList {
 		}
 		if (matchesKey(data, Key.up)) {
 			this.focusIndex =
-				this.focusIndex === 0
-					? BEHAVIOUR_SETTINGS.length - 1
-					: this.focusIndex - 1;
+				this.focusIndex === 0 ? SETTINGS.length - 1 : this.focusIndex - 1;
 			this.tui.requestRender();
 			return;
 		}
 		if (matchesKey(data, Key.down)) {
-			this.focusIndex = (this.focusIndex + 1) % BEHAVIOUR_SETTINGS.length;
+			this.focusIndex = (this.focusIndex + 1) % SETTINGS.length;
 			this.tui.requestRender();
 			return;
 		}
 		if (matchesKey(data, Key.enter) || data === " ") {
-			const setting = BEHAVIOUR_SETTINGS[this.focusIndex];
+			const setting = SETTINGS[this.focusIndex];
 			if (setting) {
-				this.saveBehaviour(setting.key, !this.config.behaviour[setting.key]);
+				this.saveSetting(setting.key, !this.getSettingValue(setting.key));
 				this.tui.requestRender();
 			}
 		}
@@ -139,7 +143,7 @@ export class AskSettingsList {
 		);
 
 		lines.push(this.line("", innerWidth));
-		for (const [index, setting] of BEHAVIOUR_SETTINGS.entries()) {
+		for (const [index, setting] of SETTINGS.entries()) {
 			for (const settingLine of this.renderSetting(
 				setting,
 				index,
@@ -147,7 +151,7 @@ export class AskSettingsList {
 			)) {
 				lines.push(this.line(settingLine, innerWidth));
 			}
-			if (innerWidth < COMPACT_WIDTH && index < BEHAVIOUR_SETTINGS.length - 1) {
+			if (innerWidth < COMPACT_WIDTH && index < SETTINGS.length - 1) {
 				lines.push(this.line("", innerWidth));
 			}
 		}
@@ -185,7 +189,7 @@ export class AskSettingsList {
 	}
 
 	private appendSelectedDescription(lines: string[], innerWidth: number): void {
-		const selectedSetting = BEHAVIOUR_SETTINGS[this.focusIndex];
+		const selectedSetting = SETTINGS[this.focusIndex];
 		if (!selectedSetting) {
 			return;
 		}
@@ -236,18 +240,16 @@ export class AskSettingsList {
 	}
 
 	private renderSetting(
-		setting: (typeof BEHAVIOUR_SETTINGS)[number],
+		setting: (typeof SETTINGS)[number],
 		index: number,
 		innerWidth: number
 	): string[] {
 		const selected = index === this.focusIndex;
 		const prefix = selected ? this.theme.fg("accent", "❯ ") : "  ";
 		const continuationPrefix = "  ";
-		const value = this.renderValue(
-			this.config.behaviour[setting.key],
-			selected
-		);
-		const valueWidth = this.config.behaviour[setting.key] ? 4 : 5;
+		const enabled = this.getSettingValue(setting.key);
+		const value = this.renderValue(enabled, selected);
+		const valueWidth = enabled ? 4 : 5;
 		const labelWidth = Math.max(
 			1,
 			innerWidth - visibleWidth(prefix) - valueWidth - 2
@@ -272,16 +274,31 @@ export class AskSettingsList {
 		return `${this.theme.fg("dim", "[")}${styledValue}${this.theme.fg("dim", "]")}`;
 	}
 
-	private saveBehaviour(key: BehaviourKey, enabled: boolean): void {
+	private getSettingValue(key: SettingKey): boolean {
+		return key === "notifications.enabled"
+			? this.config.notifications.enabled
+			: this.config.behaviour[key];
+	}
+
+	private saveSetting(key: SettingKey, enabled: boolean): void {
 		this.error = undefined;
 		const previousConfig = this.config;
-		const nextConfig = {
-			...this.config,
-			behaviour: {
-				...this.config.behaviour,
-				[key]: enabled,
-			},
-		};
+		const nextConfig =
+			key === "notifications.enabled"
+				? {
+						...this.config,
+						notifications: {
+							...this.config.notifications,
+							enabled,
+						},
+					}
+				: {
+						...this.config,
+						behaviour: {
+							...this.config.behaviour,
+							[key]: enabled,
+						},
+					};
 		this.config = nextConfig;
 		this.onSave(nextConfig)
 			.then((savedConfig) => {

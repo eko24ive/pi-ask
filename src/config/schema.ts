@@ -6,8 +6,18 @@ const AskAnswerModelPreferenceSchema = Type.Object({
 	provider: Type.String(),
 });
 
-export const AskConfigFileV2Schema = Type.Object({
-	schemaVersion: Type.Literal(2),
+const AskNotificationChannelSchema = Type.Union([
+	Type.Literal("bell"),
+	Type.Literal("osc9"),
+	Type.Literal("osc777"),
+	Type.Object({
+		command: Type.String(),
+		type: Type.Literal("command"),
+	}),
+]);
+
+export const AskConfigFileV3Schema = Type.Object({
+	schemaVersion: Type.Literal(3),
 	answer: Type.Optional(
 		Type.Object({
 			extractionModels: Type.Optional(
@@ -35,9 +45,23 @@ export const AskConfigFileV2Schema = Type.Object({
 			toggle: Type.Optional(Type.String()),
 		})
 	),
+	notifications: Type.Optional(
+		Type.Object({
+			channels: Type.Optional(Type.Array(AskNotificationChannelSchema)),
+			enabled: Type.Optional(Type.Boolean()),
+		})
+	),
 });
 
-export type AskConfigFileV2 = Static<typeof AskConfigFileV2Schema>;
+export const AskConfigFileV2Schema = Type.Omit(AskConfigFileV3Schema, [
+	"notifications",
+	"schemaVersion",
+]);
+
+export type AskConfigFileV3 = Static<typeof AskConfigFileV3Schema>;
+export type AskConfigFileV2 = Static<typeof AskConfigFileV2Schema> & {
+	schemaVersion: 2;
+};
 export type AskConfigFileV1 = Omit<
 	AskConfigFileV2,
 	"answer" | "schemaVersion"
@@ -49,6 +73,12 @@ export interface AskAnswerModelPreference {
 	id: string;
 	provider: string;
 }
+
+export type AskNotificationChannel =
+	| "bell"
+	| "osc9"
+	| "osc777"
+	| { command: string; type: "command" };
 
 export interface AskConfigKeymaps {
 	cancel: string;
@@ -72,6 +102,10 @@ export interface AskConfig {
 		showFooterHints: boolean;
 	};
 	keymaps: AskConfigKeymaps;
+	notifications: {
+		channels: AskNotificationChannel[];
+		enabled: boolean;
+	};
 }
 
-export const validateAskConfigFileV2 = Compile(AskConfigFileV2Schema);
+export const validateAskConfigFileV3 = Compile(AskConfigFileV3Schema);

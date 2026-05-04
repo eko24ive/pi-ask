@@ -18,6 +18,7 @@ The codebase is split so the implementation reads through file boundaries and na
 - `src/answer-commands.ts` — `/answer`, `/answer:again`, and `/ask:replay` command wiring
 - `src/answer-extraction.ts` — configured extraction model selection and raw-JSON extraction retries
 - `src/ask-payload-store.ts` — branch-aware persisted ask payload lookup
+- `src/notifications.ts` — best-effort ask notification payload rendering and channel execution
 - `src/schema.ts` — TypeBox schema
 - `src/types.ts` — shared types
 
@@ -76,7 +77,8 @@ The codebase is split so the implementation reads through file boundaries and na
 - config schema migrations preserve user-provided values and add new defaults only when fields are absent
 - replay payload lookup scans only the current session branch and revalidates payloads before use
 - invalid persisted keymaps fall back to default keymaps for the current session without discarding valid behaviour settings
-- ask settings behaviour changes persist immediately from the settings list
+- invalid notification channels are skipped and fall back to the default bell channel if none are valid
+- ask settings behaviour and notification enabled changes persist immediately from the settings list
 - when the ask config file is missing, the first ask use writes a default persisted config snapshot under `~/.pi/agent/extensions/`
 - legacy root config files move into `~/.pi/agent/extensions/` only when the current config file is absent
 - live config updates can affect an in-progress ask flow immediately

@@ -28,7 +28,7 @@ Unsupported future versions or invalid files are backed up and defaults are load
 
 ```json
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "answer": {
     "extractionModels": [
       { "provider": "openai-codex", "id": "gpt-5.4-mini" },
@@ -51,6 +51,10 @@ Unsupported future versions or invalid files are backed up and defaults are load
     "confirm": "enter",
     "optionNote": "n",
     "questionNote": "shift+n"
+  },
+  "notifications": {
+    "enabled": true,
+    "channels": ["bell"]
   }
 }
 ```
@@ -106,6 +110,52 @@ These settings affect only the `/answer` command. Normal `ask_user` tool calls d
 - type: boolean
 - default: `true`
 - effect: when disabled, the ask flow hides the footer keymap hints
+
+## Notifications
+
+Notifications are best-effort external alerts emitted once per ask session, when the ask UI opens and is waiting for input.
+
+### `notifications.enabled`
+
+- type: boolean
+- default: `true`
+- effect: enables or disables external ask notifications
+- settings UI: this is the only notification field toggled by `/ask-settings` or `?` in the ask flow
+
+### `notifications.channels`
+
+- type: array
+- default: `["bell"]`
+- supported channels:
+  - `"bell"` writes BEL (`\u0007`)
+  - `"osc9"` writes an OSC 9 terminal notification
+  - `"osc777"` writes an OSC 777 title/body notification
+  - `{ "type": "command", "command": string }` runs a shell command
+- effect: channels run in order; failures are ignored and never fail the ask flow
+- invalid channels are skipped; if none are valid, pi-ask falls back to `["bell"]`
+
+Notification text:
+
+```txt
+Question waiting: <label or prompt>
+```
+
+Command channels receive these environment variables:
+
+```sh
+ASK_NOTIFY_EVENT=question.waiting
+ASK_NOTIFY_TITLE="pi ask"
+ASK_NOTIFY_MESSAGE="Question waiting: <label or prompt>"
+```
+
+cmux example:
+
+```json
+{
+  "type": "command",
+  "command": "cmux notify --title \"$ASK_NOTIFY_TITLE\" --body \"$ASK_NOTIFY_MESSAGE\""
+}
+```
 
 ## Keymaps
 
@@ -216,7 +266,7 @@ Invalid keymaps include:
 
 ```json
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "answer": {
     "extractionRetries": 1,
     "extractionTimeoutMs": 30000,
@@ -237,6 +287,15 @@ Invalid keymaps include:
     "confirm": "ctrl+k",
     "optionNote": "x",
     "questionNote": "shift+x"
+  },
+  "notifications": {
+    "enabled": true,
+    "channels": [
+      {
+        "type": "command",
+        "command": "cmux notify --title \"$ASK_NOTIFY_TITLE\" --body \"$ASK_NOTIFY_MESSAGE\""
+      }
+    ]
   }
 }
 ```
@@ -246,9 +305,12 @@ Invalid keymaps include:
 When editing this config for a user:
 
 - preserve unrelated fields
-- keep `schemaVersion` at `2`
+- keep `schemaVersion` at `3`
 - preserve `answer.extractionModels` as explicit provider/id pairs
 - keep `answer.extractionRetries` between `0` and `3`
 - do not assign reserved bindings to configurable actions
 - do not create duplicate configurable bindings
+- preserve existing `notifications.channels` unless the user asks to change notification targets
+- only toggle `notifications.enabled` unless the user asks to configure channels
+- use a `cmux notify` command channel when the user asks for cmux notifications
 - after changing the file, tell the user to run `/reload` or restart pi

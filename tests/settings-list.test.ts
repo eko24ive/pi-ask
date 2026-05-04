@@ -23,6 +23,10 @@ const savedConfig: AskConfig = {
 		optionNote: "n",
 		questionNote: "shift+n",
 	},
+	notifications: {
+		channels: ["bell"],
+		enabled: true,
+	},
 };
 
 function plainTheme() {

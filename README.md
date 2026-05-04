@@ -43,7 +43,7 @@ Once installed, this package gives the agent a native way to ask for clarificati
 - 👀 Review tab with `Submit`, `Elaborate`, and `Cancel`
 - 💬 Elaboration flow to capture note-based clarification before final submission
 - ⌨️ Fast keyboard-first interaction with customizable ask keymaps (also mobile-friendly in remote sessions)
-- ⚙️ Ask settings with persisted behaviour, keymap customization, and `/answer` extraction config
+- ⚙️ Ask settings with persisted behaviour, notification toggle, keymap customization, and `/answer` extraction config
 - 🔁 Slash commands for fallback/replay:
   - `/answer` extracts questions from the latest assistant message into an ask flow
   - `/answer:again` reopens the latest `/answer` form on the current branch
@@ -122,11 +122,11 @@ Review-tab shortcuts can optionally require the same number key twice via `behav
 
 Config file: `~/.pi/agent/extensions/eko24ive-pi-ask.json`
 
-You can edit this file yourself, ask pi to edit it for you, or use `/ask-settings` to find the exact config path and toggle behaviour settings.
+You can edit this file yourself, ask pi to edit it for you, or use `/ask-settings` to find the exact config path and toggle behaviour/notification settings.
 
 ```json
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "answer": {
     "extractionModels": [
       { "provider": "openai-codex", "id": "gpt-5.4-mini" },
@@ -149,6 +149,10 @@ You can edit this file yourself, ask pi to edit it for you, or use `/ask-setting
     "confirm": "enter",
     "optionNote": "n",
     "questionNote": "shift+n"
+  },
+  "notifications": {
+    "enabled": true,
+    "channels": ["bell"]
   }
 }
 ```
@@ -159,7 +163,7 @@ Accepted notation follows pi-tui key ids. Common aliases are normalized, for exa
 
 After installation, the extension registers the `ask_user` tool plus `/ask-settings`, `/answer`, `/answer:again`, and `/ask:replay` commands.
 
-Agents can auto-discover and call `ask_user` when they need clarification instead of guessing. In interactive sessions, it opens a terminal UI flow for structured answers, supports native pi-style `@` file references while typing answers or notes, and returns normalized answers back to the agent. Ask settings are available both from `?` in the ask flow and from the `/ask-settings` command. Behaviour settings are binary `on`/`off` toggles that save immediately; customizable ask keymaps are changed by editing the shown config file path.
+Agents can auto-discover and call `ask_user` when they need clarification instead of guessing. In interactive sessions, it opens a terminal UI flow for structured answers, supports native pi-style `@` file references while typing answers or notes, and returns normalized answers back to the agent. Ask settings are available both from `?` in the ask flow and from the `/ask-settings` command. Behaviour and notification settings are binary `on`/`off` toggles that save immediately; customizable ask keymaps and notification channels are changed by editing the shown config file path.
 
 ### Answer and replay commands
 

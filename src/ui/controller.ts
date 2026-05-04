@@ -2,6 +2,10 @@ import type { ExtensionContext } from "@mariozechner/pi-coding-agent";
 import { Editor, type EditorTheme } from "@mariozechner/pi-tui";
 import type { AskConfig } from "../config/schema.ts";
 import { getAskConfigStore } from "../config/store.ts";
+import {
+	createQuestionWaitingNotification,
+	notifyQuestionWaiting,
+} from "../notifications.ts";
 import { createInitialState } from "../state/create.ts";
 import {
 	getEditorDraft,
@@ -134,6 +138,9 @@ function createAskFlowController(
 
 	controller.editor.onSubmit = (value) => submitEditor(controller, value);
 	syncSelection(controller);
+	notifyCurrentQuestion(controller).catch(() => {
+		// Notification failures are best-effort and must not affect the ask flow.
+	});
 
 	return {
 		render: (width: number) => renderController(controller, width),
@@ -455,6 +462,19 @@ function showSettingsModal(controller: AskFlowController) {
 
 function refresh(controller: AskFlowController) {
 	controller.tui.requestRender();
+}
+
+async function notifyCurrentQuestion(
+	controller: AskFlowController
+): Promise<void> {
+	const question = getCurrentQuestion(controller.state);
+	if (!question) {
+		return;
+	}
+	await notifyQuestionWaiting(
+		controller.config,
+		createQuestionWaitingNotification(question)
+	);
 }
 
 function maybeFinish(controller: AskFlowController) {

@@ -206,9 +206,9 @@ This document defines the stable external behavior. It does not explain internal
 - `/answer` extraction may use an internal `freeform: true` option for open-ended questions with no explicit choices; these render as user-input-only questions with the label `Type your answer:`, no numbered option row, and no selection caret; this marker is not part of the public `ask_user` tool contract
 - `/answer:again` command to replay the latest `/answer`-extracted form on the current branch
 - `/ask:replay` command to replay the latest real `ask_user` form on the current branch
-- ask settings list with binary behaviour toggles
+- ask settings list with binary behaviour and notification toggles
 - `?` in the ask flow and `/ask-settings` in pi open the same lightweight ask settings overlay
-- behaviour settings persist immediately when changed: `Auto-submit when answered without notes`, `Confirm dismiss when dirty`, `Double-press review shortcuts`, and `Show footer hints`
+- settings persist immediately when changed: `Auto-submit when answered without notes`, `Confirm dismiss when dirty`, `Double-press review shortcuts`, `Notifications`, and `Show footer hints`
 - `Keymaps` is a persisted config section for `cancel`, `dismiss`, `toggle`, `confirm`, `optionNote`, and `questionNote`
 - the settings list shows the absolute config file path for changing customizable ask keymaps
 - if the flow is already on the review tab, all questions are answered, and no notes exist, enabling auto-submit can complete the current ask flow immediately
@@ -245,7 +245,11 @@ If `ctx.hasUI === false`, the tool returns a `Needs user input` message in `cont
 
 Validation is handled inside the tool so malformed calls produce the same structured error shape as other invalid payloads instead of relying on pre-execution schema failures.
 
-The ask flow subscribes to runtime settings updates while open. In practice, this means changing `Auto-submit when answered without notes`, `Confirm dismiss when dirty`, `Double-press review shortcuts`, `Show footer hints`, or reloading config-backed keymaps can affect the in-progress ask flow immediately instead of only future asks.
+The ask flow subscribes to runtime settings updates while open. In practice, this means changing `Auto-submit when answered without notes`, `Confirm dismiss when dirty`, `Double-press review shortcuts`, `Notifications`, `Show footer hints`, or reloading config-backed keymaps can affect the in-progress ask flow immediately instead of only future asks.
+
+## Notifications
+
+When enabled, pi-ask emits one best-effort external notification per ask session after the ask UI opens and waits for input. The default title is `pi ask`; the message is `Question waiting: <label or prompt>`. Channels run in configured order and failures never fail or cancel the ask flow.
 
 ## Slash command replay/extraction
 

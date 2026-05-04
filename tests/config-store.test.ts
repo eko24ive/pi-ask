@@ -9,6 +9,18 @@ import { AskConfigStore } from "../src/config/store.ts";
 const DEFAULT_KEYMAPS_NOTICE_PATTERN =
 	/Using default ask keymaps for this session/;
 
+function expectedConfigFile(
+	overrides: { behaviour?: typeof DEFAULT_ASK_CONFIG.behaviour } = {}
+) {
+	return {
+		schemaVersion: 3,
+		answer: DEFAULT_ASK_CONFIG.answer,
+		behaviour: overrides.behaviour ?? DEFAULT_ASK_CONFIG.behaviour,
+		keymaps: DEFAULT_ASK_CONFIG.keymaps,
+		notifications: DEFAULT_ASK_CONFIG.notifications,
+	};
+}
+
 async function makeTempPath(name: string): Promise<string> {
 	const root = await import("node:fs/promises").then(({ mkdtemp }) =>
 		mkdtemp(join(tmpdir(), name))
@@ -23,12 +35,10 @@ test("config store writes defaults when file is missing", async () => {
 	const result = await store.ensureLoaded();
 
 	assert.deepEqual(result.config, DEFAULT_ASK_CONFIG);
-	assert.deepEqual(JSON.parse(await readFile(path, "utf-8")), {
-		schemaVersion: 2,
-		answer: DEFAULT_ASK_CONFIG.answer,
-		behaviour: DEFAULT_ASK_CONFIG.behaviour,
-		keymaps: DEFAULT_ASK_CONFIG.keymaps,
-	});
+	assert.deepEqual(
+		JSON.parse(await readFile(path, "utf-8")),
+		expectedConfigFile()
+	);
 	await rm(dirname(path), { force: true, recursive: true });
 });
 
@@ -47,17 +57,17 @@ test("config store writes full normalized config on save", async () => {
 	});
 
 	const content = await readFile(path, "utf-8");
-	assert.deepEqual(JSON.parse(content), {
-		schemaVersion: 2,
-		answer: DEFAULT_ASK_CONFIG.answer,
-		behaviour: {
-			autoSubmitWhenAnsweredWithoutNotes: true,
-			confirmDismissWhenDirty: true,
-			doublePressReviewShortcuts: true,
-			showFooterHints: false,
-		},
-		keymaps: DEFAULT_ASK_CONFIG.keymaps,
-	});
+	assert.deepEqual(
+		JSON.parse(content),
+		expectedConfigFile({
+			behaviour: {
+				autoSubmitWhenAnsweredWithoutNotes: true,
+				confirmDismissWhenDirty: true,
+				doublePressReviewShortcuts: true,
+				showFooterHints: false,
+			},
+		})
+	);
 	await rm(dirname(path), { force: true, recursive: true });
 });
 
@@ -144,17 +154,17 @@ test("config store migrates the legacy root config path into extensions", async 
 	assert.equal(result.config.behaviour.doublePressReviewShortcuts, true);
 	assert.equal(result.config.behaviour.showFooterHints, false);
 	await assert.rejects(readFile(legacyPath, "utf-8"));
-	assert.deepEqual(JSON.parse(await readFile(path, "utf-8")), {
-		schemaVersion: 2,
-		answer: DEFAULT_ASK_CONFIG.answer,
-		behaviour: {
-			autoSubmitWhenAnsweredWithoutNotes: true,
-			confirmDismissWhenDirty: true,
-			doublePressReviewShortcuts: true,
-			showFooterHints: false,
-		},
-		keymaps: DEFAULT_ASK_CONFIG.keymaps,
-	});
+	assert.deepEqual(
+		JSON.parse(await readFile(path, "utf-8")),
+		expectedConfigFile({
+			behaviour: {
+				autoSubmitWhenAnsweredWithoutNotes: true,
+				confirmDismissWhenDirty: true,
+				doublePressReviewShortcuts: true,
+				showFooterHints: false,
+			},
+		})
+	);
 	await rm(root, { force: true, recursive: true });
 });
 

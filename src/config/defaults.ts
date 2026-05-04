@@ -1,5 +1,9 @@
 import { DEFAULT_ASK_KEYMAPS } from "../constants/keymaps.ts";
-import type { AskConfig, AskConfigFileV2 } from "./schema.ts";
+import type {
+	AskConfig,
+	AskConfigFileV3,
+	AskNotificationChannel,
+} from "./schema.ts";
 
 const DEFAULT_EXTRACTION_RETRIES = 1;
 const MAX_EXTRACTION_RETRIES = 3;
@@ -24,10 +28,14 @@ export const DEFAULT_ASK_CONFIG: AskConfig = {
 	keymaps: {
 		...DEFAULT_ASK_KEYMAPS,
 	},
+	notifications: {
+		channels: ["bell"],
+		enabled: true,
+	},
 };
 
 export function normalizeAskConfig(
-	config?: Partial<AskConfigFileV2> | AskConfig
+	config?: Partial<AskConfigFileV3> | AskConfig
 ): AskConfig {
 	return {
 		answer: {
@@ -63,13 +71,19 @@ export function normalizeAskConfig(
 			...DEFAULT_ASK_CONFIG.keymaps,
 			...(config?.keymaps ?? {}),
 		},
+		notifications: {
+			channels: normalizeNotificationChannels(config?.notifications?.channels),
+			enabled:
+				config?.notifications?.enabled ??
+				DEFAULT_ASK_CONFIG.notifications.enabled,
+		},
 	};
 }
 
-export function toAskConfigFileV2(config: AskConfig): AskConfigFileV2 {
+export function toAskConfigFileV3(config: AskConfig): AskConfigFileV3 {
 	const normalized = normalizeAskConfig(config);
 	return {
-		schemaVersion: 2,
+		schemaVersion: 3,
 		answer: {
 			extractionModels: normalized.answer.extractionModels,
 			extractionRetries: normalized.answer.extractionRetries,
@@ -91,7 +105,38 @@ export function toAskConfigFileV2(config: AskConfig): AskConfigFileV2 {
 			optionNote: normalized.keymaps.optionNote,
 			questionNote: normalized.keymaps.questionNote,
 		},
+		notifications: {
+			channels: normalized.notifications.channels,
+			enabled: normalized.notifications.enabled,
+		},
 	};
+}
+
+function normalizeNotificationChannels(
+	channels: unknown
+): AskNotificationChannel[] {
+	if (!Array.isArray(channels)) {
+		return DEFAULT_ASK_CONFIG.notifications.channels;
+	}
+	const normalized = channels.filter(isValidNotificationChannel);
+	return normalized.length > 0
+		? normalized
+		: DEFAULT_ASK_CONFIG.notifications.channels;
+}
+
+function isValidNotificationChannel(
+	value: unknown
+): value is AskNotificationChannel {
+	if (value === "bell" || value === "osc9" || value === "osc777") {
+		return true;
+	}
+	return (
+		!!value &&
+		typeof value === "object" &&
+		(value as { type?: unknown }).type === "command" &&
+		typeof (value as { command?: unknown }).command === "string" &&
+		(value as { command: string }).command.trim().length > 0
+	);
 }
 
 function isValidModelPreference(value: unknown): value is {

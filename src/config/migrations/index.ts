@@ -1,6 +1,6 @@
 import type { AskConfigMigration, VersionedAskConfigFile } from "./types.ts";
 
-export const CURRENT_ASK_CONFIG_SCHEMA_VERSION = 2;
+export const CURRENT_ASK_CONFIG_SCHEMA_VERSION = 3;
 
 const ASK_CONFIG_MIGRATIONS: AskConfigMigration[] = [
 	{
@@ -9,6 +9,18 @@ const ASK_CONFIG_MIGRATIONS: AskConfigMigration[] = [
 		migrate: (config) => ({
 			...config,
 			schemaVersion: 2,
+		}),
+	},
+	{
+		from: 2,
+		to: 3,
+		migrate: (config) => ({
+			...config,
+			notifications: {
+				channels: ["bell"],
+				enabled: true,
+			},
+			schemaVersion: 3,
 		}),
 	},
 ];
