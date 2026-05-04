@@ -129,7 +129,7 @@ export class AskSettingsList {
 			lines,
 			this.theme.fg(
 				"muted",
-				"Edit this config file to change customizable ask keymaps:"
+				"Edit this config file to customize keymaps, notifications, and extraction settings:"
 			),
 			innerWidth
 		);

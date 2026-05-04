@@ -75,9 +75,10 @@ test("settings list renders behaviour settings and config path", () => {
 	assert(text.includes("[off]"));
 	assert(text.includes("Confirm dismiss when dirty"));
 	assert(text.includes("on"));
-	assert(
-		text.includes("Edit this config file to change customizable ask keymaps:")
-	);
+	assert(text.includes("Edit this config file to customize"));
+	assert(text.includes("keymaps"));
+	assert(text.includes("notifications"));
+	assert(text.includes("extraction settings"));
 	assert(text.includes("/tmp/eko24ive-pi-ask.json"));
 	assert(text.includes("Esc to close"));
 	assert.equal(text.includes("Esc to cancel"), false);

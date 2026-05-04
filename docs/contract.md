@@ -210,7 +210,7 @@ This document defines the stable external behavior. It does not explain internal
 - `?` in the ask flow and `/ask-settings` in pi open the same lightweight ask settings overlay
 - settings persist immediately when changed: `Auto-submit when answered without notes`, `Confirm dismiss when dirty`, `Double-press review shortcuts`, `Notifications`, and `Show footer hints`
 - `Keymaps` is a persisted config section for `cancel`, `dismiss`, `toggle`, `confirm`, `optionNote`, and `questionNote`
-- the settings list shows the absolute config file path for changing customizable ask keymaps
+- the settings list shows the absolute config file path for customizing keymaps, notifications, and extraction settings
 - if the flow is already on the review tab, all questions are answered, and no notes exist, enabling auto-submit can complete the current ask flow immediately
 - elaborate results are phrased as direct follow-up instructions, for example: `User asked to elaborate on question "Which option would you like to select?" option "Option A" with note "why this one?"`
 
