@@ -155,6 +155,42 @@ test("settings list uses configured navigation and close keys", async () => {
 	assert.equal(saved?.behaviour.confirmDismissWhenDirty, false);
 });
 
+test("settings list resets config to defaults after double press", async () => {
+	let saveCount = 0;
+	let saved: AskConfig | undefined;
+	const customConfig: AskConfig = {
+		...savedConfig,
+		behaviour: {
+			...savedConfig.behaviour,
+			autoSubmitWhenAnsweredWithoutNotes: true,
+			showFooterHints: false,
+		},
+		notifications: {
+			...savedConfig.notifications,
+			enabled: false,
+		},
+	};
+	const list = createList({
+		onSave: (config) => {
+			saveCount += 1;
+			saved = config;
+			return Promise.resolve(config);
+		},
+		savedConfig: customConfig,
+	});
+
+	list.handleInput("\x1b[A");
+	list.handleInput(" ");
+	assert.equal(saveCount, 0);
+	assert(list.render(72).join("\n").includes("[confirm reset]"));
+
+	list.handleInput(" ");
+	await new Promise((resolve) => setImmediate(resolve));
+
+	assert.equal(saveCount, 1);
+	assert.deepEqual(saved, DEFAULT_ASK_CONFIG);
+});
+
 test("settings list closes with configured keys and dispose idempotently", () => {
 	let closed = 0;
 	const list = createList({

@@ -78,7 +78,7 @@ The codebase is split so the implementation reads through file boundaries and na
 - replay payload lookup scans only the current session branch and revalidates payloads before use
 - invalid persisted keymaps fall back to default keymaps for the current session without discarding valid behaviour, notification, or answer settings
 - invalid notification channels are skipped and fall back to the default bell channel if none are valid
-- ask settings behaviour and notification enabled changes persist immediately from the settings list
+- ask settings behaviour and notification enabled changes persist immediately from the settings list; config reset is guarded by a short double-press confirmation
 - when the ask config file is missing, the first ask use writes a default persisted config snapshot under `~/.pi/agent/extensions/`
 - legacy root config files move into `~/.pi/agent/extensions/` only when the current config file is absent
 - live config updates can affect an in-progress ask flow immediately

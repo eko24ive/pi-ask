@@ -148,7 +148,7 @@ Notifications are best-effort external alerts emitted once per ask session, when
 - type: boolean
 - default: `true`
 - effect: enables or disables external ask notifications
-- settings UI: this is the only notification field toggled by `/ask-settings` or `?` in the ask flow
+- settings UI: this is the only notification field toggled individually by `/ask-settings` or `?` in the ask flow
 
 ### `notifications.channels`
 
@@ -384,5 +384,6 @@ When editing this config for a user:
 - do not create duplicate bindings within a context or between `global` and `main`, `editor`, or `noteEditor`
 - preserve existing `notifications.channels` unless the user asks to change notification targets
 - only toggle `notifications.enabled` unless the user asks to configure channels
+- use the settings reset action only when the user explicitly asks to restore pi-ask defaults
 - use a `cmux notify` command channel when the user asks for cmux notifications
 - after changing the file, tell the user to run `/reload` or restart pi

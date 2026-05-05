@@ -115,7 +115,7 @@ Fixed bindings:
 
 Review-tab shortcuts can optionally require the same number key twice via `behaviour.doublePressReviewShortcuts`.
 
-You can edit the config file yourself, ask pi to edit it for you, or use `/ask-settings` to find the exact config path and toggle behaviour/notification settings.
+You can edit the config file yourself, ask pi to edit it for you, or use `/ask-settings` to find the exact config path, toggle behaviour/notification settings, or reset config to defaults with a guarded double press.
 
 ```json
 {
@@ -184,7 +184,7 @@ Accepted notation follows pi-tui key ids. Common aliases are normalized, for exa
 
 After installation, the extension registers the `ask_user` tool plus `/ask-settings`, `/answer`, `/answer:again`, and `/ask:replay` commands.
 
-Agents can auto-discover and call `ask_user` when they need clarification instead of guessing. In interactive sessions, it opens a terminal UI flow for structured answers, supports native pi-style `@` file references while typing answers or notes, and returns normalized answers back to the agent. Ask settings are available both from `?` in the ask flow and from the `/ask-settings` command. Behaviour and notification settings are binary `on`/`off` toggles that save immediately; keymaps, notification channels, and extraction settings are changed by editing the shown config file path.
+Agents can auto-discover and call `ask_user` when they need clarification instead of guessing. In interactive sessions, it opens a terminal UI flow for structured answers, supports native pi-style `@` file references while typing answers or notes, and returns normalized answers back to the agent. Ask settings are available both from `?` in the ask flow and from the `/ask-settings` command. Behaviour and notification settings are binary `on`/`off` toggles that save immediately, and the settings overlay includes a guarded double-press reset-to-defaults action; keymaps, notification channels, and extraction settings are changed by editing the shown config file path.
 
 ### Answer and replay commands
 

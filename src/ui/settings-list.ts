@@ -3,6 +3,7 @@ import {
 	visibleWidth,
 	wrapTextWithAnsi,
 } from "@mariozechner/pi-tui";
+import { DEFAULT_ASK_CONFIG, normalizeAskConfig } from "../config/defaults.ts";
 import type { AskConfig } from "../config/schema.ts";
 import type { AskConfigNotice } from "../config/store.ts";
 import {
@@ -31,6 +32,7 @@ interface AskSettingsListOptions {
 
 const DESCRIPTION_LINE_COUNT = 3;
 const COMPACT_WIDTH = 40;
+const RESET_CONFIRMATION_MS = 2000;
 
 const SETTINGS = [
 	{
@@ -38,39 +40,53 @@ const SETTINGS = [
 			"Auto-submit completed ask flows when no question or option notes were added.",
 		key: "autoSubmitWhenAnsweredWithoutNotes",
 		label: "Auto-submit when answered without notes",
+		type: "toggle",
 	},
 	{
 		description:
 			"Require a second cancel or dismiss action before discarding answered or drafted ask content.",
 		key: "confirmDismissWhenDirty",
 		label: "Confirm dismiss when dirty",
+		type: "toggle",
 	},
 	{
 		description:
 			"Require pressing 1, 2, or 3 twice on the review tab before triggering Submit, Elaborate, or Cancel.",
 		key: "doublePressReviewShortcuts",
 		label: "Double-press review shortcuts",
+		type: "toggle",
 	},
 	{
 		description:
 			"Emit one external notification when the ask flow opens and waits for input.",
 		key: "notifications.enabled",
 		label: "Notifications",
+		type: "toggle",
 	},
 	{
 		description: "Show footer keymap hints at the bottom of the ask flow.",
 		key: "showFooterHints",
 		label: "Show footer hints",
+		type: "toggle",
+	},
+	{
+		description:
+			"Reset behaviour, keymaps, notifications, and extraction settings to defaults. Press twice quickly to confirm.",
+		key: "resetConfig",
+		label: "Reset config to defaults",
+		type: "action",
 	},
 ] as const;
 
-type SettingKey = (typeof SETTINGS)[number]["key"];
+type Setting = (typeof SETTINGS)[number];
+type SettingKey = Extract<Setting, { type: "toggle" }>["key"];
 
 export class AskSettingsList {
 	private closed = false;
 	private config: AskConfig;
 	private error?: string;
 	private focusIndex = 0;
+	private resetConfirmUntil = 0;
 	private readonly configPath: string;
 	private readonly notice?: AskConfigNotice;
 	private readonly onClose: () => void;
@@ -95,22 +111,15 @@ export class AskSettingsList {
 			return;
 		}
 		if (matchesBinding(data, bindings.previousOption)) {
-			this.focusIndex =
-				this.focusIndex === 0 ? SETTINGS.length - 1 : this.focusIndex - 1;
-			this.tui.requestRender();
+			this.moveFocus(-1);
 			return;
 		}
 		if (matchesBinding(data, bindings.nextOption)) {
-			this.focusIndex = (this.focusIndex + 1) % SETTINGS.length;
-			this.tui.requestRender();
+			this.moveFocus(1);
 			return;
 		}
 		if (matchesBinding(data, bindings.toggle)) {
-			const setting = SETTINGS[this.focusIndex];
-			if (setting) {
-				this.saveSetting(setting.key, !this.getSettingValue(setting.key));
-				this.tui.requestRender();
-			}
+			this.activateSelectedSetting();
 		}
 	}
 
@@ -144,6 +153,10 @@ export class AskSettingsList {
 
 		lines.push(this.line("", innerWidth));
 		for (const [index, setting] of SETTINGS.entries()) {
+			if (setting.type === "action") {
+				lines.push(this.line("", innerWidth));
+				lines.push(this.line("", innerWidth));
+			}
 			for (const settingLine of this.renderSetting(
 				setting,
 				index,
@@ -240,16 +253,18 @@ export class AskSettingsList {
 	}
 
 	private renderSetting(
-		setting: (typeof SETTINGS)[number],
+		setting: Setting,
 		index: number,
 		innerWidth: number
 	): string[] {
 		const selected = index === this.focusIndex;
 		const prefix = selected ? this.theme.fg("accent", "❯ ") : "  ";
 		const continuationPrefix = "  ";
-		const enabled = this.getSettingValue(setting.key);
-		const value = this.renderValue(enabled, selected);
-		const valueWidth = enabled ? 4 : 5;
+		if (setting.type === "action") {
+			return [center(this.renderSettingValue(setting, selected), innerWidth)];
+		}
+		const value = this.renderSettingValue(setting, selected);
+		const valueWidth = visibleWidth(value);
 		const labelWidth = Math.max(
 			1,
 			innerWidth - visibleWidth(prefix) - valueWidth - 2
@@ -266,11 +281,21 @@ export class AskSettingsList {
 		return [firstLine, ...continuationLines];
 	}
 
-	private renderValue(enabled: boolean, selected: boolean): string {
-		const value = enabled ? "on" : "off";
+	private renderSettingValue(setting: Setting, selected: boolean): string {
+		if (setting.type === "action") {
+			return this.renderValue(
+				this.isResetConfirmationActive() ? "confirm reset" : "reset all",
+				selected
+			);
+		}
+		return this.renderValue(this.getSettingValue(setting.key), selected);
+	}
+
+	private renderValue(value: boolean | string, selected: boolean): string {
+		const valueText = formatSettingValue(value);
 		const styledValue = selected
-			? this.theme.bg("selectedBg", this.theme.fg("accent", value))
-			: this.theme.fg("muted", value);
+			? this.theme.bg("selectedBg", this.theme.fg("accent", valueText))
+			: this.theme.fg("muted", valueText);
 		return `${this.theme.fg("dim", "[")}${styledValue}${this.theme.fg("dim", "]")}`;
 	}
 
@@ -280,9 +305,42 @@ export class AskSettingsList {
 			: this.config.behaviour[key];
 	}
 
+	private moveFocus(delta: 1 | -1): void {
+		this.resetConfirmUntil = 0;
+		this.focusIndex =
+			(this.focusIndex + delta + SETTINGS.length) % SETTINGS.length;
+		this.tui.requestRender();
+	}
+
+	private activateSelectedSetting(): void {
+		const setting = SETTINGS[this.focusIndex];
+		if (!setting) {
+			return;
+		}
+		if (setting.type === "action") {
+			this.resetConfigWithConfirmation();
+			return;
+		}
+		this.resetConfirmUntil = 0;
+		this.saveSetting(setting.key, !this.getSettingValue(setting.key));
+		this.tui.requestRender();
+	}
+
+	private resetConfigWithConfirmation(): void {
+		if (!this.isResetConfirmationActive()) {
+			this.resetConfirmUntil = Date.now() + RESET_CONFIRMATION_MS;
+			this.tui.requestRender();
+			return;
+		}
+		this.resetConfirmUntil = 0;
+		this.saveConfig(normalizeAskConfig(DEFAULT_ASK_CONFIG));
+	}
+
+	private isResetConfirmationActive(): boolean {
+		return Date.now() <= this.resetConfirmUntil;
+	}
+
 	private saveSetting(key: SettingKey, enabled: boolean): void {
-		this.error = undefined;
-		const previousConfig = this.config;
 		const nextConfig =
 			key === "notifications.enabled"
 				? {
@@ -299,6 +357,12 @@ export class AskSettingsList {
 							[key]: enabled,
 						},
 					};
+		this.saveConfig(nextConfig);
+	}
+
+	private saveConfig(nextConfig: AskConfig): void {
+		this.error = undefined;
+		const previousConfig = this.config;
 		this.config = nextConfig;
 		this.onSave(nextConfig)
 			.then((savedConfig) => {
@@ -332,6 +396,13 @@ export class AskSettingsList {
 		this.closed = true;
 		this.onClose();
 	}
+}
+
+function formatSettingValue(value: boolean | string): string {
+	if (typeof value === "string") {
+		return value;
+	}
+	return value ? "on" : "off";
 }
 
 function center(text: string, width: number): string {

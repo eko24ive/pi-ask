@@ -206,9 +206,9 @@ This document defines the stable external behavior. It does not explain internal
 - `/answer` extraction may use an internal `freeform: true` option for open-ended questions with no explicit choices; these render as user-input-only questions with the label `Type your answer:`, no numbered option row, and no selection caret; this marker is not part of the public `ask_user` tool contract
 - `/answer:again` command to replay the latest `/answer`-extracted form on the current branch
 - `/ask:replay` command to replay the latest real `ask_user` form on the current branch
-- ask settings list with binary behaviour and notification toggles
+- ask settings list with binary behaviour/notification toggles and a guarded reset-to-defaults action
 - `?` in the ask flow and `/ask-settings` in pi open the same lightweight ask settings overlay
-- settings persist immediately when changed: `Auto-submit when answered without notes`, `Confirm dismiss when dirty`, `Double-press review shortcuts`, `Notifications`, and `Show footer hints`
+- settings persist immediately when changed: `Auto-submit when answered without notes`, `Confirm dismiss when dirty`, `Double-press review shortcuts`, `Notifications`, and `Show footer hints`; resetting config to defaults requires pressing the reset action twice within a short confirmation window
 - `Keymaps` is a persisted, context-aware config section for global, main-flow, editor, note-editor, and settings-modal actions
 - the settings list shows the absolute config file path for customizing keymaps, notifications, and extraction settings
 - if the flow is already on the review tab, all questions are answered, and no notes exist, enabling auto-submit can complete the current ask flow immediately
@@ -242,7 +242,7 @@ Settings modal:
 
 - `settingsModal.close` closes settings; defaults: `Esc`, `Ctrl+C`, `?`
 - `settingsModal.nextOption` / `settingsModal.previousOption` move between settings; defaults: `Down`, `Up`
-- `settingsModal.toggle` toggles the highlighted setting and saves immediately; defaults: `Enter`, `Space`
+- `settingsModal.toggle` toggles the highlighted setting and saves immediately; on the reset action, the same binding must be pressed twice within a short confirmation window; defaults: `Enter`, `Space`
 
 Dirty dismiss:
 
@@ -255,7 +255,7 @@ If `ctx.hasUI === false`, the tool returns a `Needs user input` message in `cont
 
 Validation is handled inside the tool so malformed calls produce the same structured error shape as other invalid payloads instead of relying on pre-execution schema failures.
 
-The ask flow subscribes to runtime settings updates while open. In practice, this means changing `Auto-submit when answered without notes`, `Confirm dismiss when dirty`, `Double-press review shortcuts`, `Notifications`, `Show footer hints`, or reloading config-backed keymaps can affect the in-progress ask flow immediately instead of only future asks.
+The ask flow subscribes to runtime settings updates while open. In practice, this means changing `Auto-submit when answered without notes`, `Confirm dismiss when dirty`, `Double-press review shortcuts`, `Notifications`, `Show footer hints`, resetting config to defaults, or reloading config-backed keymaps can affect the in-progress ask flow immediately instead of only future asks.
 
 ## Notifications
 
