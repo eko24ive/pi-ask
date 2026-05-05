@@ -209,7 +209,7 @@ This document defines the stable external behavior. It does not explain internal
 - ask settings list with binary behaviour and notification toggles
 - `?` in the ask flow and `/ask-settings` in pi open the same lightweight ask settings overlay
 - settings persist immediately when changed: `Auto-submit when answered without notes`, `Confirm dismiss when dirty`, `Double-press review shortcuts`, `Notifications`, and `Show footer hints`
-- `Keymaps` is a persisted config section for `cancel`, `dismiss`, `toggle`, `confirm`, `optionNote`, and `questionNote`
+- `Keymaps` is a persisted, context-aware config section for global, main-flow, editor, note-editor, and settings-modal actions
 - the settings list shows the absolute config file path for customizing keymaps, notifications, and extraction settings
 - if the flow is already on the review tab, all questions are answered, and no notes exist, enabling auto-submit can complete the current ask flow immediately
 - elaborate results are phrased as direct follow-up instructions, for example: `User asked to elaborate on question "Which option would you like to select?" option "Option A" with note "why this one?"`
@@ -218,26 +218,36 @@ This document defines the stable external behavior. It does not explain internal
 
 Main flow:
 
-- `?`: open ask settings
-- inside ask settings, `Esc`, `Ctrl+C`, and `?` close it
-- `Tab`, `Shift+Tab`, `Left`, `Right`: move between tabs
-- `Up`, `Down`: move between options
-- `1..9`: select or toggle the matching option; on the review tab, `1`, `2`, and `3` trigger `Submit`, `Elaborate`, and `Cancel`
+- `global.settings` opens ask settings; default: `?`
+- `global.dismiss` dismisses the active ask surface; default: `Ctrl+C`
+- `main.nextTab` / `main.previousTab` move between tabs; defaults: `Tab`/`Right`, `Shift+Tab`/`Left`
+- `main.nextOption` / `main.previousOption` move between options or review actions; defaults: `Down`, `Up`
+- `main.confirm`, `main.cancel`, and `main.toggle` confirm, cancel, or toggle; defaults: `Enter`, `Esc`, `Space`
+- `main.optionNote` and `main.questionNote` open option/question notes; defaults: `n`, `Shift+N`
+- `1..9` is fixed and selects or toggles the matching option; on the review tab, `1`, `2`, and `3` trigger `Submit`, `Elaborate`, and `Cancel`
 - when `Double-press review shortcuts` is enabled, review-tab `1`, `2`, and `3` require the same key twice without a timeout, and the review screen shows an inline hint for the pending action
-- the following actions are configurable via persisted `keymaps`: `Enter` by default confirms or submits, `Esc` cancels, `Ctrl+C` dismisses, `Space` toggles, `n` edits the active option note, and `Shift+N` edits the current question note
 
 Editing flow:
 
-- the configurable `confirm` binding submits the current editor input and closes the editor; in note editors this saves the note only and keeps the ask flow open
-- the configurable `cancel` binding saves draft and closes the editor
+- `editor.submit` submits the current custom-answer editor input and closes the editor; default: `Enter`
+- `noteEditor.save` saves the current note editor and keeps the ask flow open; default: `Enter`
+- `editor.close` / `noteEditor.close` save draft and close the editor; default: `Esc`
+- `global.dismiss` dismisses the entire flow immediately without saving the current editor draft when no dirty-dismiss confirmation is pending
+- `global.settings` opens ask settings when the editor is empty; otherwise the key is delegated to the editor as text/input
+- when editor has text, arrow keys and `Tab` stay in the editor so the cursor can move while typing
+- when editor is empty, editor-context `*WhenEmpty` navigation actions move options or tabs without requiring the editor close binding first
+- `@` remains a fixed file-reference affordance in editors
+
+Settings modal:
+
+- `settingsModal.close` closes settings; defaults: `Esc`, `Ctrl+C`, `?`
+- `settingsModal.nextOption` / `settingsModal.previousOption` move between settings; defaults: `Down`, `Up`
+- `settingsModal.toggle` toggles the highlighted setting and saves immediately; defaults: `Enter`, `Space`
+
+Dirty dismiss:
+
 - when `Confirm dismiss when dirty` is enabled, cancelling or dismissing a dirty ask flow requires the same action a second time
 - the dirty-dismiss warning stays visible until the user changes tabs in the ask flow
-- the configurable `dismiss` binding dismisses the entire flow immediately without saving the current editor draft when no dirty-dismiss confirmation is pending
-- `?`: open ask settings when the editor is empty; otherwise enter `?` as text
-- inside ask settings, behaviour changes save immediately without explicit save feedback
-- when editor has text, arrow keys and `Tab` stay in the editor so the cursor can move while typing
-- when editor is empty, `Up`/`Down` move options and `Tab`/`Shift+Tab`/`Left`/`Right` move between tabs without requiring the configurable cancel key first
-- navigation resumes only after closing the editor with the configurable `cancel` binding, unless the editor is empty and the navigation keys above are used
 
 ## Non-interactive mode
 

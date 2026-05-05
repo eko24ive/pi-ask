@@ -28,7 +28,7 @@ Unsupported future versions or invalid files are backed up and defaults are load
 
 ```json
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "answer": {
     "extractionModels": [
       { "provider": "openai-codex", "id": "gpt-5.4-mini" },
@@ -45,12 +45,40 @@ Unsupported future versions or invalid files are backed up and defaults are load
     "showFooterHints": true
   },
   "keymaps": {
-    "cancel": "esc",
-    "dismiss": "ctrl+c",
-    "toggle": "space",
-    "confirm": "enter",
-    "optionNote": "n",
-    "questionNote": "shift+n"
+    "global": { "dismiss": ["ctrl+c"], "settings": ["?"] },
+    "main": {
+      "confirm": ["enter"],
+      "cancel": ["esc"],
+      "toggle": ["space"],
+      "nextTab": ["tab", "right"],
+      "previousTab": ["shift+tab", "left"],
+      "nextOption": ["down"],
+      "previousOption": ["up"],
+      "optionNote": ["n"],
+      "questionNote": ["shift+n"]
+    },
+    "editor": {
+      "submit": ["enter"],
+      "close": ["esc"],
+      "nextTabWhenEmpty": ["tab", "right"],
+      "previousTabWhenEmpty": ["shift+tab", "left"],
+      "nextOptionWhenEmpty": ["down"],
+      "previousOptionWhenEmpty": ["up"]
+    },
+    "noteEditor": {
+      "save": ["enter"],
+      "close": ["esc"],
+      "nextTabWhenEmpty": ["tab", "right"],
+      "previousTabWhenEmpty": ["shift+tab", "left"],
+      "nextOptionWhenEmpty": ["down"],
+      "previousOptionWhenEmpty": ["up"]
+    },
+    "settingsModal": {
+      "close": ["esc", "ctrl+c", "?"],
+      "nextOption": ["down"],
+      "previousOption": ["up"],
+      "toggle": ["enter", "space"]
+    }
   },
   "notifications": {
     "enabled": true,
@@ -159,33 +187,69 @@ cmux example:
 
 ## Keymaps
 
-`keymaps` must contain all 6 configurable actions if present.
-
-### Configurable actions
-
-- `cancel`
-- `dismiss`
-- `toggle`
-- `confirm`
-- `optionNote`
-- `questionNote`
+`keymaps` is context-aware. Each action accepts either one key id string or an array of key id strings.
+Arrays are aliases: any listed key triggers the same action.
 
 ### Defaults
 
-- `cancel: "esc"`
-- `dismiss: "ctrl+c"`
-- `toggle: "space"`
-- `confirm: "enter"`
-- `optionNote: "n"`
-- `questionNote: "shift+n"`
+```json
+"keymaps": {
+  "global": {
+    "dismiss": ["ctrl+c"],
+    "settings": ["?"]
+  },
+  "main": {
+    "confirm": ["enter"],
+    "cancel": ["esc"],
+    "toggle": ["space"],
+    "nextTab": ["tab", "right"],
+    "previousTab": ["shift+tab", "left"],
+    "nextOption": ["down"],
+    "previousOption": ["up"],
+    "optionNote": ["n"],
+    "questionNote": ["shift+n"]
+  },
+  "editor": {
+    "submit": ["enter"],
+    "close": ["esc"],
+    "nextTabWhenEmpty": ["tab", "right"],
+    "previousTabWhenEmpty": ["shift+tab", "left"],
+    "nextOptionWhenEmpty": ["down"],
+    "previousOptionWhenEmpty": ["up"]
+  },
+  "noteEditor": {
+    "save": ["enter"],
+    "close": ["esc"],
+    "nextTabWhenEmpty": ["tab", "right"],
+    "previousTabWhenEmpty": ["shift+tab", "left"],
+    "nextOptionWhenEmpty": ["down"],
+    "previousOptionWhenEmpty": ["up"]
+  },
+  "settingsModal": {
+    "close": ["esc", "ctrl+c", "?"],
+    "nextOption": ["down"],
+    "previousOption": ["up"],
+    "toggle": ["enter", "space"]
+  }
+}
+```
+
+### Contexts
+
+- `global`: active in the main ask flow and editors; duplicates with those contexts are invalid
+- `main`: question and review flow
+- `editor`: custom answer editor
+- `noteEditor`: question/option note editor
+- `settingsModal`: `/ask-settings` and `?` settings overlay
 
 ### Allowed bindings
 
-Each configurable action accepts any single `pi-tui` key id string, as long as it is:
+Each action accepts any `pi-tui` key id string, as long as it is:
 
 - supported by `pi-tui`
-- not reserved
-- not duplicated across configurable actions
+- not a fixed numeric shortcut (`1` through `9`)
+- not duplicated within the same context
+- not duplicated between `global` and `main`, `editor`, or `noteEditor`
 
 Examples of valid bindings:
 
@@ -196,7 +260,7 @@ Examples of valid bindings:
 - `n`
 - `shift+n`
 - `alt+f7`
-- `ctrl+[`
+- `ctrl+[` 
 - `ctrl+shift+p`
 - `super+k`
 
@@ -213,43 +277,19 @@ Examples:
 - `pageup` -> `pageUp`
 - `pagedown` -> `pageDown`
 
-### Reserved bindings
-
-These bindings are fixed and cannot be used by configurable actions:
-
-- `?`
-- `tab`
-- `shift+tab`
-- `left`
-- `right`
-- `up`
-- `down`
-- `1`
-- `2`
-- `3`
-- `4`
-- `5`
-- `6`
-- `7`
-- `8`
-- `9`
-
 ### Fixed bindings
 
 These are intentionally not configurable:
 
-- `?` opens ask settings
-- `tab`, `shift+tab`, `left`, `right` move between tabs
-- `up`, `down` move between options/actions
 - `1..9` triggers option/review shortcuts
 - when `behaviour.doublePressReviewShortcuts` is enabled, review-tab shortcuts `1`, `2`, and `3` require the same key twice
-- `@` remains file-reference affordance in editors
+- `@` remains the file-reference affordance in editors
 
 ## Invalid keymaps behavior
 
 If configured keymaps are invalid:
 
-- valid `behaviour` settings still load
+- valid `behaviour`, `notifications`, and `answer` settings still load
 - invalid `keymaps` fall back to default keymaps for the current session
 - ask remains usable
 - a warning notice is shown
@@ -257,16 +297,17 @@ If configured keymaps are invalid:
 
 Invalid keymaps include:
 
-- missing one of the 6 required actions
+- missing one of the required contexts or actions
 - unsupported key syntax
-- duplicate bindings across configurable actions
-- use of reserved bindings
+- duplicate bindings within one context
+- duplicate bindings between `global` and `main`, `editor`, or `noteEditor`
+- use of fixed numeric shortcuts (`1` through `9`)
 
 ## Example custom config
 
 ```json
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "answer": {
     "extractionRetries": 1,
     "extractionTimeoutMs": 30000,
@@ -281,12 +322,43 @@ Invalid keymaps include:
     "showFooterHints": false
   },
   "keymaps": {
-    "cancel": "q",
-    "dismiss": "ctrl+c",
-    "toggle": "ctrl+t",
-    "confirm": "ctrl+k",
-    "optionNote": "x",
-    "questionNote": "shift+x"
+    "global": {
+      "dismiss": ["ctrl+c"],
+      "settings": ["?"]
+    },
+    "main": {
+      "confirm": ["ctrl+k"],
+      "cancel": ["q"],
+      "toggle": ["ctrl+t"],
+      "nextTab": ["tab", "right"],
+      "previousTab": ["shift+tab", "left"],
+      "nextOption": ["down"],
+      "previousOption": ["up"],
+      "optionNote": ["x"],
+      "questionNote": ["shift+x"]
+    },
+    "editor": {
+      "submit": ["ctrl+k"],
+      "close": ["q"],
+      "nextTabWhenEmpty": ["tab", "right"],
+      "previousTabWhenEmpty": ["shift+tab", "left"],
+      "nextOptionWhenEmpty": ["down"],
+      "previousOptionWhenEmpty": ["up"]
+    },
+    "noteEditor": {
+      "save": ["ctrl+k"],
+      "close": ["q"],
+      "nextTabWhenEmpty": ["tab", "right"],
+      "previousTabWhenEmpty": ["shift+tab", "left"],
+      "nextOptionWhenEmpty": ["down"],
+      "previousOptionWhenEmpty": ["up"]
+    },
+    "settingsModal": {
+      "close": ["esc", "ctrl+c", "?"],
+      "nextOption": ["j", "down"],
+      "previousOption": ["k", "up"],
+      "toggle": ["enter", "space"]
+    }
   },
   "notifications": {
     "enabled": true,
@@ -305,11 +377,11 @@ Invalid keymaps include:
 When editing this config for a user:
 
 - preserve unrelated fields
-- keep `schemaVersion` at `3`
+- keep `schemaVersion` at `4`
 - preserve `answer.extractionModels` as explicit provider/id pairs
 - keep `answer.extractionRetries` between `0` and `3`
-- do not assign reserved bindings to configurable actions
-- do not create duplicate configurable bindings
+- do not assign fixed numeric shortcuts (`1` through `9`) to configurable actions
+- do not create duplicate bindings within a context or between `global` and `main`, `editor`, or `noteEditor`
 - preserve existing `notifications.channels` unless the user asks to change notification targets
 - only toggle `notifications.enabled` unless the user asks to configure channels
 - use a `cmux notify` command channel when the user asks for cmux notifications

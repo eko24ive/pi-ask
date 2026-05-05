@@ -42,8 +42,9 @@ Once installed, this package gives the agent a native way to ask for clarificati
 - 📝 Question-level and option-level notes
 - 👀 Review tab with `Submit`, `Elaborate`, and `Cancel`
 - 💬 Elaboration flow to capture note-based clarification before final submission
-- ⌨️ Fast keyboard-first interaction with customizable ask keymaps (also mobile-friendly in remote sessions)
-- ⚙️ Ask settings with persisted behaviour, notification toggle, keymap customization, and `/answer` extraction config
+- ⌨️ Context-aware customizable keymaps with aliases for main flow, editors, and settings
+- ⚙️ Ask settings with persisted behaviour, notifications, keymaps, and `/answer` extraction config
+- 🔔 Optional external notifications when an ask flow is waiting for input
 - 🔁 Slash commands for fallback/replay:
   - `/answer` extracts questions from the latest assistant message into an ask flow
   - `/answer:again` reopens the latest `/answer` form on the current branch
@@ -92,41 +93,33 @@ Capture free-form input inline without leaving the flow.
 
 Open ask settings with `?` during the ask flow, or with the `/ask-settings` command from pi.
 
-Customizable via config:
+Keymaps are context-aware and configurable in `~/.pi/agent/extensions/eko24ive-pi-ask.json`.
+Each action accepts a key string or an array of aliases.
 
-| Action | Default key |
-|---|---|
-| Cancel flow or close/save editor draft | `Esc` |
-| Dismiss entire ask flow immediately | `Ctrl+C` |
-| Toggle selected option | `Space` |
-| Confirm / continue / save / submit | `Enter` |
-| Edit selected option note | `n` |
-| Edit question note | `Shift+N` |
+Default contexts:
+
+- `global`: `dismiss` (`Ctrl+C`) and `settings` (`?`)
+- `main`: confirm/cancel/toggle, tab navigation, option navigation, and note shortcuts
+- `editor`: custom answer submit/close and empty-editor navigation
+- `noteEditor`: note save/close and empty-editor navigation
+- `settingsModal`: close, next/previous setting, and toggle
 
 Fixed bindings:
 
-| Key                         | Context                                 | Effect                                      |
-|-----------------------------|-----------------------------------------|---------------------------------------------|
-| `?`                         | Ask flow / empty editor                 | Open ask settings                           |
-| `Tab` `Shift+Tab`           | Main flow                               | Switch tabs                                 |
-| `←` `→`                     | Main flow                               | Switch tabs                                 |
-| `↑` `↓`                     | Main flow                               | Move cursor                                 |
-| `1..9`                      | Options list                            | Select or toggle matching option            |
-| `1` `2` `3`                 | Review tab                              | Trigger `Submit` / `Elaborate` / `Cancel`   |
-| `↑` `↓`                     | Review tab                              | Change highlighted review action            |
-| `↑` `↓`                     | Empty editor                            | Move options without closing editor         |
-| `Tab` `Shift+Tab` / `←` `→` | Empty editor                            | Switch tabs without closing editor          |
-| Arrow keys / `Tab`          | Non-empty editor                        | Stay in editor for cursor movement          |
+| Key | Context | Effect |
+|---|---|---|
+| `1..9` | Options list | Select or toggle matching option |
+| `1` `2` `3` | Review tab | Trigger `Submit` / `Elaborate` / `Cancel` |
+| `@` | Editors | File-reference affordance |
+| Arrow keys / `Tab` | Non-empty editor | Stay in editor for cursor movement |
 
 Review-tab shortcuts can optionally require the same number key twice via `behaviour.doublePressReviewShortcuts`.
 
-Config file: `~/.pi/agent/extensions/eko24ive-pi-ask.json`
-
-You can edit this file yourself, ask pi to edit it for you, or use `/ask-settings` to find the exact config path and toggle behaviour/notification settings.
+You can edit the config file yourself, ask pi to edit it for you, or use `/ask-settings` to find the exact config path and toggle behaviour/notification settings.
 
 ```json
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "answer": {
     "extractionModels": [
       { "provider": "openai-codex", "id": "gpt-5.4-mini" },
@@ -143,12 +136,40 @@ You can edit this file yourself, ask pi to edit it for you, or use `/ask-setting
     "showFooterHints": true
   },
   "keymaps": {
-    "cancel": "esc",
-    "dismiss": "ctrl+c",
-    "toggle": "space",
-    "confirm": "enter",
-    "optionNote": "n",
-    "questionNote": "shift+n"
+    "global": { "dismiss": ["ctrl+c"], "settings": ["?"] },
+    "main": {
+      "confirm": ["enter"],
+      "cancel": ["esc"],
+      "toggle": ["space"],
+      "nextTab": ["tab", "right"],
+      "previousTab": ["shift+tab", "left"],
+      "nextOption": ["down"],
+      "previousOption": ["up"],
+      "optionNote": ["n"],
+      "questionNote": ["shift+n"]
+    },
+    "editor": {
+      "submit": ["enter"],
+      "close": ["esc"],
+      "nextTabWhenEmpty": ["tab", "right"],
+      "previousTabWhenEmpty": ["shift+tab", "left"],
+      "nextOptionWhenEmpty": ["down"],
+      "previousOptionWhenEmpty": ["up"]
+    },
+    "noteEditor": {
+      "save": ["enter"],
+      "close": ["esc"],
+      "nextTabWhenEmpty": ["tab", "right"],
+      "previousTabWhenEmpty": ["shift+tab", "left"],
+      "nextOptionWhenEmpty": ["down"],
+      "previousOptionWhenEmpty": ["up"]
+    },
+    "settingsModal": {
+      "close": ["esc", "ctrl+c", "?"],
+      "nextOption": ["down"],
+      "previousOption": ["up"],
+      "toggle": ["enter", "space"]
+    }
   },
   "notifications": {
     "enabled": true,

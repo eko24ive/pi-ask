@@ -13,7 +13,7 @@ function expectedConfigFile(
 	overrides: { behaviour?: typeof DEFAULT_ASK_CONFIG.behaviour } = {}
 ) {
 	return {
-		schemaVersion: 3,
+		schemaVersion: 4,
 		answer: DEFAULT_ASK_CONFIG.answer,
 		behaviour: overrides.behaviour ?? DEFAULT_ASK_CONFIG.behaviour,
 		keymaps: DEFAULT_ASK_CONFIG.keymaps,

@@ -172,6 +172,7 @@ function renderController(
 }
 
 function handleControllerInput(controller: AskFlowController, data: string) {
+	controller.editor.disableSubmit = !isNativeEditorSubmitEnabled(controller);
 	const command = getInputCommand(
 		controller.state,
 		controller.config,
@@ -183,6 +184,16 @@ function handleControllerInput(controller: AskFlowController, data: string) {
 		return;
 	}
 	handleNavigationCommand(controller, command);
+}
+
+function isNativeEditorSubmitEnabled(controller: AskFlowController): boolean {
+	if (controller.state.view.kind === "input") {
+		return controller.config.keymaps.editor.submit.includes("enter");
+	}
+	if (controller.state.view.kind === "note") {
+		return controller.config.keymaps.noteEditor.save.includes("enter");
+	}
+	return true;
 }
 
 function handleEditingCommand(
@@ -208,6 +219,10 @@ function handleEditingCommand(
 	}
 	if (command.kind === "editClose") {
 		closeEditor(controller);
+		return;
+	}
+	if (command.kind === "editSubmit") {
+		submitEditor(controller, controller.editor.getText());
 		return;
 	}
 	if (command.kind === "delegateToEditor") {
@@ -270,6 +285,7 @@ function handleNavigationCommand(
 		case "editMoveTab":
 		case "editMoveOption":
 		case "editClose":
+		case "editSubmit":
 		case "delegateToEditor":
 			return;
 		default:

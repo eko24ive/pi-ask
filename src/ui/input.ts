@@ -1,6 +1,9 @@
+import { matchesKey } from "@mariozechner/pi-tui";
 import type { AskConfig } from "../config/schema.ts";
 import {
-	getAskKeyBindings,
+	type AskKeyBinding,
+	getAskContextBindings,
+	getGlobalBindings,
 	matchesBinding,
 	matchesDigitShortcut,
 } from "../constants/keymaps.ts";
@@ -20,6 +23,7 @@ export type AskInputCommand =
 	| { kind: "editMoveTab"; delta: 1 | -1 }
 	| { kind: "editMoveOption"; delta: 1 | -1 }
 	| { kind: "editClose" }
+	| { kind: "editSubmit" }
 	| { kind: "delegateToEditor" }
 	| { kind: "ignore" };
 
@@ -29,50 +33,94 @@ export function getInputCommand(
 	data: string,
 	editingText = ""
 ): AskInputCommand {
-	const bindings = getAskKeyBindings(config);
-	if (matchesBinding(data, bindings.dismiss)) {
+	const global = getGlobalBindings(config);
+	if (matchesBinding(data, global.dismiss)) {
 		return { kind: "dismiss" };
 	}
-	if (matchesBinding(data, bindings.settings) && editingText.length === 0) {
+	if (matchesBinding(data, global.settings) && editingText.length === 0) {
 		return { kind: "showSettings" };
 	}
 
-	if (state.view.kind === "input" || state.view.kind === "note") {
-		return getEditingInputCommand(bindings, data, editingText);
+	if (state.view.kind === "input") {
+		return getAnswerEditorInputCommand(config, data, editingText);
+	}
+	if (state.view.kind === "note") {
+		return getNoteEditorInputCommand(config, data, editingText);
 	}
 
-	return getNavigationInputCommand(bindings, data);
+	return getNavigationInputCommand(config, data);
 }
 
-function getEditingInputCommand(
-	bindings: ReturnType<typeof getAskKeyBindings>,
+function getAnswerEditorInputCommand(
+	config: AskConfig,
 	data: string,
 	editingText: string
 ): AskInputCommand {
-	if (matchesBinding(data, bindings.cancel)) {
+	const bindings = getAskContextBindings(config, "editor");
+	if (matchesBinding(data, bindings.submit)) {
+		return isNativeEditorSubmit(data)
+			? { kind: "delegateToEditor" }
+			: { kind: "editSubmit" };
+	}
+	if (matchesBinding(data, bindings.close)) {
 		return { kind: "editClose" };
 	}
+	return getEmptyEditorNavigationCommand(bindings, data, editingText);
+}
+
+function getNoteEditorInputCommand(
+	config: AskConfig,
+	data: string,
+	editingText: string
+): AskInputCommand {
+	const bindings = getAskContextBindings(config, "noteEditor");
+	if (matchesBinding(data, bindings.save)) {
+		return isNativeEditorSubmit(data)
+			? { kind: "delegateToEditor" }
+			: { kind: "editSubmit" };
+	}
+	if (matchesBinding(data, bindings.close)) {
+		return { kind: "editClose" };
+	}
+	return getEmptyEditorNavigationCommand(bindings, data, editingText);
+}
+
+function getEmptyEditorNavigationCommand(
+	bindings: {
+		nextTabWhenEmpty: AskKeyBinding;
+		previousTabWhenEmpty: AskKeyBinding;
+		previousOptionWhenEmpty: AskKeyBinding;
+		nextOptionWhenEmpty: AskKeyBinding;
+	},
+	data: string,
+	editingText: string
+): AskInputCommand {
 	if (editingText.length === 0) {
-		if (matchesBinding(data, bindings.nextTab)) {
+		if (matchesBinding(data, bindings.nextTabWhenEmpty)) {
 			return { kind: "editMoveTab", delta: 1 };
 		}
-		if (matchesBinding(data, bindings.previousTab)) {
+		if (matchesBinding(data, bindings.previousTabWhenEmpty)) {
 			return { kind: "editMoveTab", delta: -1 };
 		}
-		if (matchesBinding(data, bindings.previousOption)) {
+		if (matchesBinding(data, bindings.previousOptionWhenEmpty)) {
 			return { kind: "editMoveOption", delta: -1 };
 		}
-		if (matchesBinding(data, bindings.nextOption)) {
+		if (matchesBinding(data, bindings.nextOptionWhenEmpty)) {
 			return { kind: "editMoveOption", delta: 1 };
 		}
 	}
 	return { kind: "delegateToEditor" };
 }
 
+function isNativeEditorSubmit(data: string): boolean {
+	return matchesKey(data, "enter");
+}
+
 function getNavigationInputCommand(
-	bindings: ReturnType<typeof getAskKeyBindings>,
+	config: AskConfig,
 	data: string
 ): AskInputCommand {
+	const bindings = getAskContextBindings(config, "main");
 	if (matchesBinding(data, bindings.nextTab)) {
 		return { kind: "moveTab", delta: 1 };
 	}

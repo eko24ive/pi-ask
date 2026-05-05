@@ -1,15 +1,12 @@
-import {
-	type AskConfigurableKeyAction,
-	normalizeConfiguredKeymaps,
-} from "../constants/keymaps.ts";
+import { normalizeConfiguredKeymaps } from "../constants/keymaps.ts";
 import { normalizeAskConfig } from "./defaults.ts";
 import {
 	AskConfigVersionMigrationError,
 	type AskConfigVersionMigrationResult,
 	migrateAskConfigFileToCurrent,
 } from "./migrations/index.ts";
-import type { AskConfig, AskConfigFileV3 } from "./schema.ts";
-import { validateAskConfigFileV3 } from "./schema.ts";
+import type { AskConfig, AskConfigFileV4 } from "./schema.ts";
+import { validateAskConfigFileV4 } from "./schema.ts";
 
 export class AskConfigMigrationError extends Error {
 	readonly reason: "invalid_or_unsupported" | "migration_failed";
@@ -42,20 +39,16 @@ export function migrateAskConfig(raw: unknown): AskConfigMigrationResult {
 		);
 	}
 
-	if (!validateAskConfigFileV3.Check(migratedFile.config)) {
+	if (!validateAskConfigFileV4.Check(migratedFile.config)) {
 		throw new AskConfigMigrationError(
 			"Config was invalid or unsupported.",
 			"invalid_or_unsupported"
 		);
 	}
 
-	const currentFile = migratedFile.config as AskConfigFileV3;
+	const currentFile = migratedFile.config as AskConfigFileV4;
 	const config = normalizeAskConfig(currentFile);
-	const keymapsResult = normalizeConfiguredKeymaps(
-		currentFile.keymaps as
-			| Partial<Record<AskConfigurableKeyAction, unknown>>
-			| undefined
-	);
+	const keymapsResult = normalizeConfiguredKeymaps(currentFile.keymaps);
 	if (!keymapsResult.ok) {
 		return {
 			config: {

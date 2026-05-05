@@ -36,7 +36,7 @@ The codebase is split so the implementation reads through file boundaries and na
 
 - `src/config/defaults.ts` — canonical runtime defaults
 - `src/config/schema.ts` — persisted config schema and runtime type
-- `src/config/migrate.ts` — persisted-file validation boundary, including keymap normalization/fallback
+- `src/config/migrate.ts` — persisted-file validation boundary, including schema migration and context-aware keymap normalization/fallback
 - `src/config/migrations/` — ordered schema-version migration framework for persisted config shape changes
 - `src/config/path-migrations.ts` — file-location migration before config load
 - `src/config/store.ts` — load/save/backup/runtime subscription store
@@ -44,7 +44,7 @@ The codebase is split so the implementation reads through file boundaries and na
 ### UI
 
 - `src/ui/controller.ts` — connects key input, editor lifecycle, live config subscription, dirty-dismiss confirmation, and pure state transitions
-- `src/ui/input.ts` — raw input to commands using resolved config-backed keymaps
+- `src/ui/input.ts` — raw input to commands using resolved context-aware config-backed keymaps
 - `src/ui/dismiss-guard.ts` — pure helpers for dirty-flow exit confirmation behavior
 - `src/ui/render.ts` and `src/ui/render-*.ts` — screen rendering, including config-backed footer/keymap hints
 - `src/ui/settings-list.ts` / `src/ui/show-settings.ts` — lightweight ask settings list rendering and launcher
@@ -76,7 +76,7 @@ The codebase is split so the implementation reads through file boundaries and na
 - persisted ask settings are migrated to the current schema version, validated, and normalized before use
 - config schema migrations preserve user-provided values and add new defaults only when fields are absent
 - replay payload lookup scans only the current session branch and revalidates payloads before use
-- invalid persisted keymaps fall back to default keymaps for the current session without discarding valid behaviour settings
+- invalid persisted keymaps fall back to default keymaps for the current session without discarding valid behaviour, notification, or answer settings
 - invalid notification channels are skipped and fall back to the default bell channel if none are valid
 - ask settings behaviour and notification enabled changes persist immediately from the settings list
 - when the ask config file is missing, the first ask use writes a default persisted config snapshot under `~/.pi/agent/extensions/`

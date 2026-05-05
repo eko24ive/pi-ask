@@ -15,14 +15,7 @@ const savedConfig: AskConfig = {
 		doublePressReviewShortcuts: true,
 		showFooterHints: true,
 	},
-	keymaps: {
-		cancel: "esc",
-		dismiss: "ctrl+c",
-		toggle: "space",
-		confirm: "enter",
-		optionNote: "n",
-		questionNote: "shift+n",
-	},
+	keymaps: DEFAULT_ASK_CONFIG.keymaps,
 	notifications: {
 		channels: ["bell"],
 		enabled: true,
@@ -44,6 +37,7 @@ function createList(
 	options: {
 		onClose?: () => void;
 		onSave?: (config: AskConfig) => Promise<AskConfig>;
+		savedConfig?: AskConfig;
 	} = {}
 ) {
 	const onClose =
@@ -56,7 +50,7 @@ function createList(
 		notice: undefined,
 		onClose,
 		onSave: options.onSave ?? ((config) => Promise.resolve(config)),
-		savedConfig,
+		savedConfig: options.savedConfig ?? savedConfig,
 		tui: {
 			requestRender() {
 				// no-op in tests
@@ -80,7 +74,7 @@ test("settings list renders behaviour settings and config path", () => {
 	assert(text.includes("notifications"));
 	assert(text.includes("extraction settings"));
 	assert(text.includes("/tmp/eko24ive-pi-ask.json"));
-	assert(text.includes("Esc to close"));
+	assert(text.includes("Esc / Ctrl+C / ? to close"));
 	assert.equal(text.includes("Esc to cancel"), false);
 	assert.equal(text.includes("Keymaps"), false);
 	assert.equal(text.includes("Ctrl+S"), false);
@@ -131,7 +125,37 @@ test("settings list shows save failures and reverts the toggle", async () => {
 	assert(text.includes("[off]"));
 });
 
-test("settings list closes with escape, ctrl-c, question mark, and dispose idempotently", () => {
+test("settings list uses configured navigation and close keys", async () => {
+	let saved: AskConfig | undefined;
+	const customConfig: AskConfig = {
+		...savedConfig,
+		keymaps: {
+			...savedConfig.keymaps,
+			settingsModal: {
+				...savedConfig.keymaps.settingsModal,
+				nextOption: ["j"],
+				previousOption: ["k"],
+				toggle: ["x"],
+				close: ["q"],
+			},
+		},
+	};
+	const list = createList({
+		onSave: (config) => {
+			saved = config;
+			return Promise.resolve(config);
+		},
+		savedConfig: customConfig,
+	});
+
+	list.handleInput("j");
+	list.handleInput("x");
+	await new Promise((resolve) => setImmediate(resolve));
+
+	assert.equal(saved?.behaviour.confirmDismissWhenDirty, false);
+});
+
+test("settings list closes with configured keys and dispose idempotently", () => {
 	let closed = 0;
 	const list = createList({
 		onClose: () => {

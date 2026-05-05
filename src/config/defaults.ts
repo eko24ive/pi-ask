@@ -1,7 +1,11 @@
-import { DEFAULT_ASK_KEYMAPS } from "../constants/keymaps.ts";
+import {
+	DEFAULT_ASK_KEYMAPS,
+	normalizeConfiguredKeymaps,
+} from "../constants/keymaps.ts";
 import type {
 	AskConfig,
-	AskConfigFileV3,
+	AskConfigFileV4,
+	AskConfigKeymaps,
 	AskNotificationChannel,
 } from "./schema.ts";
 
@@ -25,9 +29,7 @@ export const DEFAULT_ASK_CONFIG: AskConfig = {
 		doublePressReviewShortcuts: true,
 		showFooterHints: true,
 	},
-	keymaps: {
-		...DEFAULT_ASK_KEYMAPS,
-	},
+	keymaps: cloneKeymaps(DEFAULT_ASK_KEYMAPS),
 	notifications: {
 		channels: ["bell"],
 		enabled: true,
@@ -35,7 +37,7 @@ export const DEFAULT_ASK_CONFIG: AskConfig = {
 };
 
 export function normalizeAskConfig(
-	config?: Partial<AskConfigFileV3> | AskConfig
+	config?: Partial<AskConfigFileV4> | AskConfig
 ): AskConfig {
 	return {
 		answer: {
@@ -67,10 +69,7 @@ export function normalizeAskConfig(
 				config?.behaviour?.showFooterHints ??
 				DEFAULT_ASK_CONFIG.behaviour.showFooterHints,
 		},
-		keymaps: {
-			...DEFAULT_ASK_CONFIG.keymaps,
-			...(config?.keymaps ?? {}),
-		},
+		keymaps: mergeKeymaps(config?.keymaps),
 		notifications: {
 			channels: normalizeNotificationChannels(config?.notifications?.channels),
 			enabled:
@@ -80,10 +79,10 @@ export function normalizeAskConfig(
 	};
 }
 
-export function toAskConfigFileV3(config: AskConfig): AskConfigFileV3 {
+export function toAskConfigFileV4(config: AskConfig): AskConfigFileV4 {
 	const normalized = normalizeAskConfig(config);
 	return {
-		schemaVersion: 3,
+		schemaVersion: 4,
 		answer: {
 			extractionModels: normalized.answer.extractionModels,
 			extractionRetries: normalized.answer.extractionRetries,
@@ -97,17 +96,57 @@ export function toAskConfigFileV3(config: AskConfig): AskConfigFileV3 {
 				normalized.behaviour.doublePressReviewShortcuts,
 			showFooterHints: normalized.behaviour.showFooterHints,
 		},
-		keymaps: {
-			cancel: normalized.keymaps.cancel,
-			dismiss: normalized.keymaps.dismiss,
-			toggle: normalized.keymaps.toggle,
-			confirm: normalized.keymaps.confirm,
-			optionNote: normalized.keymaps.optionNote,
-			questionNote: normalized.keymaps.questionNote,
-		},
+		keymaps: cloneKeymaps(normalized.keymaps),
 		notifications: {
 			channels: normalized.notifications.channels,
 			enabled: normalized.notifications.enabled,
+		},
+	};
+}
+
+function mergeKeymaps(keymaps: unknown): AskConfigKeymaps {
+	const normalized = normalizeConfiguredKeymaps(keymaps);
+	return normalized.ok ? normalized.keymaps : cloneKeymaps(DEFAULT_ASK_KEYMAPS);
+}
+
+function cloneKeymaps(keymaps: AskConfigKeymaps): AskConfigKeymaps {
+	return {
+		global: {
+			dismiss: [...keymaps.global.dismiss],
+			settings: [...keymaps.global.settings],
+		},
+		main: {
+			cancel: [...keymaps.main.cancel],
+			confirm: [...keymaps.main.confirm],
+			nextOption: [...keymaps.main.nextOption],
+			nextTab: [...keymaps.main.nextTab],
+			optionNote: [...keymaps.main.optionNote],
+			previousOption: [...keymaps.main.previousOption],
+			previousTab: [...keymaps.main.previousTab],
+			questionNote: [...keymaps.main.questionNote],
+			toggle: [...keymaps.main.toggle],
+		},
+		editor: {
+			close: [...keymaps.editor.close],
+			nextOptionWhenEmpty: [...keymaps.editor.nextOptionWhenEmpty],
+			nextTabWhenEmpty: [...keymaps.editor.nextTabWhenEmpty],
+			previousOptionWhenEmpty: [...keymaps.editor.previousOptionWhenEmpty],
+			previousTabWhenEmpty: [...keymaps.editor.previousTabWhenEmpty],
+			submit: [...keymaps.editor.submit],
+		},
+		noteEditor: {
+			close: [...keymaps.noteEditor.close],
+			nextOptionWhenEmpty: [...keymaps.noteEditor.nextOptionWhenEmpty],
+			nextTabWhenEmpty: [...keymaps.noteEditor.nextTabWhenEmpty],
+			previousOptionWhenEmpty: [...keymaps.noteEditor.previousOptionWhenEmpty],
+			previousTabWhenEmpty: [...keymaps.noteEditor.previousTabWhenEmpty],
+			save: [...keymaps.noteEditor.save],
+		},
+		settingsModal: {
+			close: [...keymaps.settingsModal.close],
+			nextOption: [...keymaps.settingsModal.nextOption],
+			previousOption: [...keymaps.settingsModal.previousOption],
+			toggle: [...keymaps.settingsModal.toggle],
 		},
 	};
 }
@@ -139,10 +178,9 @@ function isValidNotificationChannel(
 	);
 }
 
-function isValidModelPreference(value: unknown): value is {
-	id: string;
-	provider: string;
-} {
+function isValidModelPreference(
+	value: unknown
+): value is { id: string; provider: string } {
 	return (
 		!!value &&
 		typeof value === "object" &&

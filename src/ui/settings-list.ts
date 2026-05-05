@@ -1,12 +1,15 @@
 import {
-	Key,
-	matchesKey,
 	truncateToWidth,
 	visibleWidth,
 	wrapTextWithAnsi,
 } from "@mariozechner/pi-tui";
 import type { AskConfig } from "../config/schema.ts";
 import type { AskConfigNotice } from "../config/store.ts";
+import {
+	getAskContextBindings,
+	matchesBinding,
+	renderSettingsFooterKeymaps,
+} from "../constants/keymaps.ts";
 
 interface Theme {
 	bg(color: string, text: string): string;
@@ -86,26 +89,23 @@ export class AskSettingsList {
 	}
 
 	handleInput(data: string): void {
-		if (
-			data === "?" ||
-			matchesKey(data, Key.ctrl("c")) ||
-			matchesKey(data, Key.escape)
-		) {
+		const bindings = getAskContextBindings(this.config, "settingsModal");
+		if (matchesBinding(data, bindings.close)) {
 			this.close();
 			return;
 		}
-		if (matchesKey(data, Key.up)) {
+		if (matchesBinding(data, bindings.previousOption)) {
 			this.focusIndex =
 				this.focusIndex === 0 ? SETTINGS.length - 1 : this.focusIndex - 1;
 			this.tui.requestRender();
 			return;
 		}
-		if (matchesKey(data, Key.down)) {
+		if (matchesBinding(data, bindings.nextOption)) {
 			this.focusIndex = (this.focusIndex + 1) % SETTINGS.length;
 			this.tui.requestRender();
 			return;
 		}
-		if (matchesKey(data, Key.enter) || data === " ") {
+		if (matchesBinding(data, bindings.toggle)) {
 			const setting = SETTINGS[this.focusIndex];
 			if (setting) {
 				this.saveSetting(setting.key, !this.getSettingValue(setting.key));
@@ -175,15 +175,15 @@ export class AskSettingsList {
 
 	private appendFooter(lines: string[], innerWidth: number): void {
 		if (innerWidth < COMPACT_WIDTH) {
-			lines.push(
-				this.line(this.theme.fg("dim", " Enter/Space to change"), innerWidth)
-			);
-			lines.push(this.line(this.theme.fg("dim", " Esc to close"), innerWidth));
+			const footer = renderSettingsFooterKeymaps(this.config);
+			for (const line of wrapTextWithAnsi(footer, innerWidth - 2)) {
+				lines.push(this.line(this.theme.fg("dim", ` ${line}`), innerWidth));
+			}
 			return;
 		}
 		this.appendWrapped(
 			lines,
-			this.theme.fg("dim", "Enter/Space to change · Esc to close"),
+			this.theme.fg("dim", renderSettingsFooterKeymaps(this.config)),
 			innerWidth
 		);
 	}

@@ -90,8 +90,11 @@ test("editing footers use configured key labels", () => {
 		...DEFAULT_ASK_CONFIG,
 		keymaps: {
 			...DEFAULT_ASK_CONFIG.keymaps,
-			confirm: "ctrl+k",
-			cancel: "q",
+			noteEditor: {
+				...DEFAULT_ASK_CONFIG.keymaps.noteEditor,
+				save: ["ctrl+k"],
+				close: ["q"],
+			},
 		},
 	};
 
