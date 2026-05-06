@@ -3,7 +3,7 @@
 # @eko24ive/pi-ask
 
 [![npm downloads](https://badgen.net/npm/dm/@eko24ive/pi-ask)](https://www.npmjs.com/package/@eko24ive/pi-ask)
-[![last commit](https://badgen.net/github/last-commit/eko24ive/pi-ask)](https://github.com/eko24ive/pi-ask/commits/main)
+[![last commit](https://badgen.net/github/last-commit/eko24ive/pi-ask?v=45d8302)](https://github.com/eko24ive/pi-ask/commits/main)
 [![stars](https://badgen.net/github/stars/eko24ive/pi-ask)](https://github.com/eko24ive/pi-ask/stargazers)
 
 `@eko24ive/pi-ask` is an ask tool that cares about your answers.

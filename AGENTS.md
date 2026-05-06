@@ -95,6 +95,7 @@ Keep docs short and synced with the implementation.
 - `docs/README.md`: docs index
 - `docs/contract.md`: external behavior and UX guarantees
 - `docs/architecture.md`: module boundaries and invariants
+- when the README `last commit` badge uses a `?v=<commit-sha>` cache-busting param, update that SHA when the badge is stale and you are already touching `README.md` for a related docs/release refresh
 
 ## Coding expectations
 
