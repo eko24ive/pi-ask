@@ -311,12 +311,6 @@ export function renderFooterKeymaps(
 	const editor = getAskContextBindings(config, "editor");
 	const noteEditor = getAskContextBindings(config, "noteEditor");
 	const bindings = getAskKeyBindings(config);
-	const optionNavigationLabel =
-		`${main.previousOption.label}${main.nextOption.label}`.replaceAll(
-			" / ",
-			""
-		);
-	const tabNavigationLabel = "⇆";
 	const noteNavigationLabel = `${main.optionNote.label}/${main.questionNote.label}`;
 	const hintsByContext: Record<FooterKeymapContext, readonly string[]> = {
 		input: [
@@ -331,14 +325,11 @@ export function renderFooterKeymaps(
 		],
 		submit: [
 			footerHint(bindings.numberShortcut, "hotkeys"),
-			footerHint(main.previousOption, "select", optionNavigationLabel),
 			footerHint(main.confirm, "confirm"),
 			footerHint(main.cancel, "cancel"),
 			footerHint(global.settings, "settings"),
 		],
 		multi: [
-			footerHint(main.nextTab, "tab", tabNavigationLabel),
-			footerHint(main.previousOption, "select", optionNavigationLabel),
 			footerHint(main.toggle, "toggle"),
 			footerHint(
 				main.changeQuestionType,
@@ -351,8 +342,6 @@ export function renderFooterKeymaps(
 			footerHint(global.settings, "settings"),
 		],
 		default: [
-			footerHint(main.nextTab, "tab", tabNavigationLabel),
-			footerHint(main.previousOption, "select", optionNavigationLabel),
 			footerHint(
 				main.changeQuestionType,
 				"question type",
