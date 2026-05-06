@@ -1,3 +1,18 @@
+# [0.9.0](https://github.com/eko24ive/pi-ask/compare/v0.8.1...v0.9.0) (2026-05-06)
+
+
+### Bug Fixes
+
+* remove footer navigation hints ([45d8302](https://github.com/eko24ive/pi-ask/commit/45d8302e0a2e1527f0129bbb53fec38927a722ac))
+
+
+### Features
+
+* add ask notifications ([43cee4c](https://github.com/eko24ive/pi-ask/commit/43cee4c0f0cbbaf9673b67ca300ff5b05117819c))
+* add context-aware ask keymaps ([808b62c](https://github.com/eko24ive/pi-ask/commit/808b62cc77ee23093f2f672679ada1c34ec1a978))
+* add guarded config reset ([b218b8b](https://github.com/eko24ive/pi-ask/commit/b218b8b1889b163e5bd21fcb5083250921404a02))
+* add question type presentation controls ([f1a0a5d](https://github.com/eko24ive/pi-ask/commit/f1a0a5d5e5eb3591b90200921e88660517830dec))
+
 ## [0.8.1](https://github.com/eko24ive/pi-ask/compare/v0.8.0...v0.8.1) (2026-05-03)
 
 
