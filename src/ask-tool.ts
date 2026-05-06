@@ -42,7 +42,7 @@ export function registerAskTool(pi: ExtensionAPI) {
 }
 
 async function executeAskTool(
-	pi: Pick<ExtensionAPI, "appendEntry">,
+	pi: Pick<ExtensionAPI, "appendEntry" | "events">,
 	toolCallId: string,
 	params: AskParams,
 	_signal: AbortSignal | undefined,
@@ -64,9 +64,11 @@ async function executeAskTool(
 	if (!ctx.hasUI) {
 		return nonInteractiveResponse(validation.state);
 	}
+	pi.events.emit("ask:started", params);
 	ctx.ui.setWorkingVisible(false);
 	try {
 		const result = await runAskFlow(ctx, params);
+		pi.events.emit("ask:completed", result);
 		return successfulResponse(result);
 	} finally {
 		ctx.ui.setWorkingVisible(true);
