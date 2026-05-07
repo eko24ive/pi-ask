@@ -25,9 +25,15 @@ const noop = () => {
 function registerMockTool() {
 	const tools: Record<string, unknown>[] = [];
 	const entries: Array<{ customType: string; data: unknown }> = [];
+	const emitted: Array<{ channel: string; data: unknown }> = [];
 	registerAskTool({
 		appendEntry(customType: string, data: unknown) {
 			entries.push({ customType, data });
+		},
+		events: {
+			emit(channel: string, data: unknown) {
+				emitted.push({ channel, data });
+			},
 		},
 		registerTool(tool: unknown) {
 			tools.push(tool as Record<string, unknown>);
@@ -35,6 +41,7 @@ function registerMockTool() {
 	} as never);
 	return {
 		entries,
+		emitted,
 		tool: tools[0] as {
 			execute: (...args: any[]) => Promise<any>;
 			renderCall: (args: unknown, theme: any) => { text: string };
@@ -359,4 +366,26 @@ test("ask tool transcript renderers summarize call and cancelled result", () => 
 		theme
 	).text;
 	assert.equal(invalidText, "Invalid input");
+});
+
+test("ask tool emits ask:started and ask:completed events in non-interactive mode", async () => {
+	const { emitted, tool } = registerMockTool();
+
+	await tool.execute("call-1", sampleParams(), undefined, noop, makeCtx(false));
+
+	assert.equal(emitted.length, 0);
+});
+
+test("ask tool does not emit events on validation failure", async () => {
+	const { emitted, tool } = registerMockTool();
+
+	await tool.execute(
+		"call-1",
+		{ title: "X", questions: [] },
+		undefined,
+		noop,
+		makeCtx(true)
+	);
+
+	assert.equal(emitted.length, 0);
 });

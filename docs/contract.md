@@ -285,6 +285,17 @@ The auto-bundled skill profile at `skills/ask-user/SKILL.md` defines agent-side 
 
 It is advisory only. If there is any conflict, contract + tests win.
 
+## Event bus
+
+pi-ask emits two events on `pi.events` for inter-extension communication:
+
+- **`ask:started`** — emitted after validation, before the ask UI opens. Payload is the validated `AskParams` (`title`, `questions` with prompts/labels/options). Useful for recalling user attention via TTS or notifications.
+- **`ask:completed`** — emitted after the ask flow closes. Payload is `AskResult` (see Output section). Covers all outcomes: submitted, elaborated, and cancelled.
+
+Neither event is emitted on validation failure or in non-interactive mode (`ctx.hasUI === false`).
+
+Consumers use `pi.events.on("ask:started", handler)` and `pi.events.on("ask:completed", handler)` without importing anything from pi-ask.
+
 ## Source of truth
 
 Behavior should be verified against:

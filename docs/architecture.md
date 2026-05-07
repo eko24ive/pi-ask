@@ -86,6 +86,7 @@ The codebase is split so the implementation reads through file boundaries and na
 - when the ask config file is missing, the first ask use writes a default persisted config snapshot under `~/.pi/agent/extensions/`
 - legacy root config files move into `~/.pi/agent/extensions/` only when the current config file is absent
 - live config updates can affect an in-progress ask flow immediately
+- `ask:started` and `ask:completed` events are emitted on `pi.events` at flow boundaries in `ask-tool.ts` and `answer-commands.ts`; they are always paired and never emitted on validation failure or in non-interactive mode
 
 ## Documentation rule
 
