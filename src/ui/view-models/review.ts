@@ -1,4 +1,4 @@
-import { visibleWidth } from "@mariozechner/pi-tui";
+import { visibleWidth } from "@earendil-works/pi-tui";
 import { SUBMIT_CHOICES } from "../../constants/text.ts";
 import { UI_DIMENSIONS } from "../../constants/ui.ts";
 import { isCustomOnlyAnswer } from "../../state/answers.ts";

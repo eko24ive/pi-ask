@@ -1,4 +1,4 @@
-import { truncateToWidth } from "@mariozechner/pi-tui";
+import { truncateToWidth } from "@earendil-works/pi-tui";
 import { UI_TEXT } from "../constants/ui.ts";
 import type { AskState } from "../types.ts";
 import {

@@ -1,7 +1,7 @@
 import type {
 	ExtensionAPI,
 	ExtensionContext,
-} from "@mariozechner/pi-coding-agent";
+} from "@earendil-works/pi-coding-agent";
 import { validateParams } from "./ask-tool-helpers.ts";
 import type { AskParams } from "./types.ts";
 

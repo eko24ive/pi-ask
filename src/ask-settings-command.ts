@@ -1,7 +1,7 @@
 import type {
 	ExtensionAPI,
 	ExtensionCommandContext,
-} from "@mariozechner/pi-coding-agent";
+} from "@earendil-works/pi-coding-agent";
 import { showAskSettings } from "./ui/show-settings.ts";
 
 export function registerAskSettingsCommand(pi: ExtensionAPI) {

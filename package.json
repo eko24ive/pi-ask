@@ -82,17 +82,17 @@
     ]
   },
   "peerDependencies": {
-    "@mariozechner/pi-coding-agent": "*",
-    "@mariozechner/pi-tui": "*",
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*",
     "typebox": "*",
-    "@mariozechner/pi-ai": "*"
+    "@earendil-works/pi-ai": "*"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.12",
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
-    "@mariozechner/pi-coding-agent": "0.72.1",
-    "@mariozechner/pi-tui": "0.72.1",
+    "@earendil-works/pi-coding-agent": "0.75.3",
+    "@earendil-works/pi-tui": "0.75.3",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/git": "^10.0.1",
@@ -107,7 +107,7 @@
     "semantic-release": "^25.0.3",
     "typescript": "6.0.2",
     "ultracite": "7.6.0",
-    "@mariozechner/pi-ai": "0.72.1"
+    "@earendil-works/pi-ai": "0.75.3"
   },
   "config": {
     "commitizen": {
@@ -116,10 +116,10 @@
   },
   "pnpm": {
     "overrides": {
-      "@mariozechner/pi-agent-core": "0.72.1",
-      "@mariozechner/pi-ai": "0.72.1",
-      "@mariozechner/pi-tui": "0.72.1",
-      "@mariozechner/pi-coding-agent": "0.72.1"
+      "@earendil-works/pi-agent-core": "0.75.3",
+      "@earendil-works/pi-ai": "0.75.3",
+      "@earendil-works/pi-tui": "0.75.3",
+      "@earendil-works/pi-coding-agent": "0.75.3"
     },
     "ignoredBuiltDependencies": [
       "lefthook"

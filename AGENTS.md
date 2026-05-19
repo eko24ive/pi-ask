@@ -36,8 +36,8 @@ Optimize for:
 - TypeScript
 - pnpm
 - Biome
-- pi extension APIs from `@mariozechner/pi-coding-agent`
-- TUI components from `@mariozechner/pi-tui`
+- pi extension APIs from `@earendil-works/pi-coding-agent`
+- TUI components from `@earendil-works/pi-tui`
 - TypeBox for tool schemas
 
 ## Commands
