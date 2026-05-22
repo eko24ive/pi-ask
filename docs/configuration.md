@@ -31,9 +31,9 @@ Unsupported future versions or invalid files are backed up and defaults are load
   "schemaVersion": 5,
   "answer": {
     "extractionModels": [
-      { "provider": "openai-codex", "id": "gpt-5.4-mini" },
-      { "provider": "github-copilot", "id": "gpt-5.4-mini" },
-      { "provider": "anthropic", "id": "claude-haiku-4-5" }
+      { "provider": "openai-codex", "id": "<model-id>" },
+      { "provider": "github-copilot", "id": "<model-id>" },
+      { "provider": "anthropic", "id": "<model-id>" }
     ],
     "extractionTimeoutMs": 30000,
     "extractionRetries": 1
@@ -96,7 +96,7 @@ These settings affect only the `/answer` command. Normal `ask_user` tool calls d
 ### `answer.extractionModels`
 
 - type: array of `{ "provider": string, "id": string }`
-- default: `openai-codex/gpt-5.4-mini`, `github-copilot/gpt-5.4-mini`, then `anthropic/claude-haiku-4-5`
+- default: lightweight OpenAI Codex, GitHub Copilot, and Anthropic models
 - effect: `/answer` tries configured models in order and uses the first model with available auth
 - fallback: if no configured model is usable, `/answer` tries the current chat model after validating its auth
 
@@ -325,7 +325,7 @@ Invalid keymaps include:
     "extractionRetries": 1,
     "extractionTimeoutMs": 30000,
     "extractionModels": [
-      { "provider": "openai-codex", "id": "gpt-5.4-mini" }
+      { "provider": "openai-codex", "id": "<model-id>" }
     ]
   },
   "behaviour": {
