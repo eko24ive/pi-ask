@@ -1,3 +1,15 @@
+# [1.0.0](https://github.com/eko24ive/pi-ask/compare/v0.9.0...v1.0.0) (2026-05-22)
+
+
+* feat!: migrate to latest pi packages ([a987406](https://github.com/eko24ive/pi-ask/commit/a9874062a50d4073a5379667620e1f2e457148a2))
+
+
+### BREAKING CHANGES
+
+* pi dependencies moved from @mariozechner/* to @earendil-works/*.
+
+Consumers must use the latest pi package scope.
+
 # [0.9.0](https://github.com/eko24ive/pi-ask/compare/v0.8.1...v0.9.0) (2026-05-06)
 
 
