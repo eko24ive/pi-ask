@@ -1,5 +1,5 @@
-import type { ExtensionContext } from "@mariozechner/pi-coding-agent";
-import type { Editor } from "@mariozechner/pi-tui";
+import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
+import type { Editor } from "@earendil-works/pi-tui";
 import type {
 	getAnswer,
 	getCurrentQuestion,

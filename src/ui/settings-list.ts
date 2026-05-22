@@ -2,7 +2,7 @@ import {
 	truncateToWidth,
 	visibleWidth,
 	wrapTextWithAnsi,
-} from "@mariozechner/pi-tui";
+} from "@earendil-works/pi-tui";
 import { DEFAULT_ASK_CONFIG, normalizeAskConfig } from "../config/defaults.ts";
 import type { AskConfig } from "../config/schema.ts";
 import type { AskConfigNotice } from "../config/store.ts";

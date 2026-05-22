@@ -1,6 +1,6 @@
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { registerAnswerCommands } from "./answer-commands.ts";
 import { registerAskSettingsCommand } from "./ask-settings-command.ts";
 import { registerAskTool } from "./ask-tool.ts";

@@ -1,6 +1,6 @@
 import { accessSync, constants as fsConstants } from "node:fs";
 import { delimiter, join } from "node:path";
-import { CombinedAutocompleteProvider } from "@mariozechner/pi-tui";
+import { CombinedAutocompleteProvider } from "@earendil-works/pi-tui";
 
 const FD_BINARY_NAMES =
 	process.platform === "win32"

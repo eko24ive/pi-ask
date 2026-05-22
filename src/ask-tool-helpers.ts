@@ -1,5 +1,5 @@
-import type { ExtensionContext } from "@mariozechner/pi-coding-agent";
-import { Text, truncateToWidth } from "@mariozechner/pi-tui";
+import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
+import { Text, truncateToWidth } from "@earendil-works/pi-tui";
 import { UI_DIMENSIONS } from "./constants/ui.ts";
 import { renderResultText } from "./result.ts";
 import { createInitialState } from "./state/create.ts";

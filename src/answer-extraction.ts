@@ -3,8 +3,8 @@ import {
 	complete,
 	type Model,
 	type UserMessage,
-} from "@mariozechner/pi-ai";
-import type { ExtensionContext } from "@mariozechner/pi-coding-agent";
+} from "@earendil-works/pi-ai";
+import type { ExtensionContext } from "@earendil-works/pi-coding-agent";
 import type { AskConfig } from "./config/schema.ts";
 import type { AskParams } from "./types.ts";
 

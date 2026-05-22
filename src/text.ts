@@ -1,4 +1,4 @@
-import { visibleWidth } from "@mariozechner/pi-tui";
+import { visibleWidth } from "@earendil-works/pi-tui";
 
 const LEADING_WHITESPACE_PATTERN = /^\s*/;
 const WORD_SPLIT_PATTERN = /\s+/;

@@ -1,4 +1,4 @@
-import { truncateToWidth, visibleWidth } from "@mariozechner/pi-tui";
+import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
 import { UI_DIMENSIONS } from "../constants/ui.ts";
 import {
 	measurePreviewLeftWidth,

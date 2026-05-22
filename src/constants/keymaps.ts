@@ -1,4 +1,4 @@
-import { matchesKey } from "@mariozechner/pi-tui";
+import { matchesKey } from "@earendil-works/pi-tui";
 import type { AskConfig, AskConfigKeymaps } from "../config/schema.ts";
 
 const DIGIT_SHORTCUT_PATTERN = /^[1-9]$/;

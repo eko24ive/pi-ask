@@ -3,7 +3,7 @@ import { dirname, join } from "node:path";
 
 const JSON_EXTENSION_PATTERN = /\.json$/u;
 
-import { getAgentDir } from "@mariozechner/pi-coding-agent";
+import { getAgentDir } from "@earendil-works/pi-coding-agent";
 import {
 	DEFAULT_ASK_CONFIG,
 	normalizeAskConfig,
