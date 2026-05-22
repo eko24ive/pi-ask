@@ -1,3 +1,11 @@
+## [1.0.1](https://github.com/eko24ive/pi-ask/compare/v1.0.0...v1.0.1) (2026-05-22)
+
+
+### Bug Fixes
+
+* avoid config docs supply-chain false positive ([5d12c2f](https://github.com/eko24ive/pi-ask/commit/5d12c2fb8da82ca538999be65f58595c8aa54dde))
+* clarify ask_user prompt guidelines ([4afbe62](https://github.com/eko24ive/pi-ask/commit/4afbe62a42c80b13b8c77112a25cc68ab18ea3fa))
+
 # [1.0.0](https://github.com/eko24ive/pi-ask/compare/v0.9.0...v1.0.0) (2026-05-22)
 
 
