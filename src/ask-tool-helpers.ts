@@ -16,16 +16,15 @@ export const ASK_TOOL_DESCRIPTION =
 	"Interactive clarification tool for cases where the next step depends on user preferences, missing requirements, or choosing between multiple valid directions. Ask a short structured interview, collect normalized answers, and continue using those answers explicitly instead of guessing. Supports single-select, multi-select, and preview-pane questions. Always include a machine-readable `value` for every option. Use `preview` only when every option includes `preview` text; descriptions alone are not enough.";
 
 export const ASK_TOOL_PROMPT_GUIDELINES = [
-	"Use this tool before making preference-sensitive decisions about scope, tone, UX, naming, architecture, docs, or implementation direction.",
-	"When multiple valid directions exist, ask 1-3 concise questions instead of committing to one path on your own.",
-	"Prefer one focused decision per question. Use short labels. Provide clear, distinct options. Do not add filler options.",
-	"Always include a non-empty `value` for every option.",
-	"Choose question `type` from the question semantics: `single` means one answer is expected, `multi` means multiple answers could reasonably be selected, and `preview` means options need preview-pane detail and every option includes non-empty `preview` text.",
-	"Avoid defaulting mechanically; infer from whether the options are mutually exclusive, can coexist, or need preview-pane detail.",
-	'Use `type: "preview"` only when every option includes non-empty `preview` text. Option descriptions do not satisfy this requirement.',
-	"After clarifying a note or follow-up question, prefer another structured ask_user follow-up if a choice is still needed instead of switching to plain-text multiple choice in chat.",
-	"When prior answers already narrow the branch, bundle the next 2-3 related unresolved decisions into one follow-up ask instead of issuing a long sequence of single-question asks.",
-	"Use one-at-a-time follow-up asks only when the next question materially depends on the previous answer.",
+	"Use `ask_user` before making preference-sensitive decisions about scope, tone, UX, naming, architecture, docs, or implementation direction.",
+	"When multiple valid directions exist, call `ask_user` with 1-3 concise questions instead of committing to one path on your own.",
+	"When calling `ask_user`, prefer one focused decision per question. Use short labels. Provide clear, distinct options. Do not add filler options.",
+	"When calling `ask_user`, always include a non-empty machine-readable `value` for every option.",
+	"When calling `ask_user`, choose question `type` from the question semantics: `single` means one answer is expected, `multi` means multiple answers could reasonably be selected, and `preview` means options need preview-pane detail.",
+	'When calling `ask_user`, use `type: "preview"` only when every option includes non-empty `preview` text. Option descriptions do not satisfy this requirement.',
+	"After an `ask_user` elaboration or follow-up note, prefer another structured `ask_user` follow-up if a choice is still needed instead of switching to plain-text multiple choice in chat.",
+	"When prior `ask_user` answers narrow the branch, bundle the next 2-3 related unresolved decisions into one follow-up `ask_user` call when possible.",
+	"Use one-at-a-time `ask_user` follow-up calls only when the next question materially depends on the previous answer.",
 ] as const;
 
 interface ValidateParamsOptions {
