@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/eko24ive/pi-ask/compare/v1.0.1...v1.0.2) (2026-05-31)
+
+
+### Bug Fixes
+
+* avoid destructive ask config writes ([fa89c15](https://github.com/eko24ive/pi-ask/commit/fa89c1551a509690dee767165124450aac322c58))
+
 ## [1.0.1](https://github.com/eko24ive/pi-ask/compare/v1.0.0...v1.0.1) (2026-05-22)
 
 
