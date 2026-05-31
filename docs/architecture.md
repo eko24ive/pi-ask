@@ -38,8 +38,7 @@ The codebase is split so the implementation reads through file boundaries and na
 - `src/config/schema.ts` — persisted config schema and runtime type
 - `src/config/migrate.ts` — persisted-file validation boundary, including schema migration and context-aware keymap normalization/fallback
 - `src/config/migrations/` — ordered schema-version migration framework for persisted config shape changes
-- `src/config/path-migrations.ts` — file-location migration before config load
-- `src/config/store.ts` — load/save/backup/runtime subscription store
+- `src/config/store.ts` — non-destructive current/legacy config discovery, load, save, notice, and runtime subscription store
 
 ### UI
 
@@ -75,16 +74,17 @@ The codebase is split so the implementation reads through file boundaries and na
 - deselected option notes stay in UI state
 - only selected option notes are emitted in the final result
 - editor lifecycle stays in the controller, not in the reducers
-- persisted ask settings are migrated to the current schema version, validated, and normalized before use
+- persisted ask settings are migrated to the current schema version in memory, validated, and normalized before use without rewriting the config file on load
 - config schema migrations preserve user-provided values and add new defaults only when fields are absent
 - replay payload lookup scans only the current session branch and revalidates payloads before use
 - invalid persisted keymaps fall back to default keymaps for the current session without discarding valid behaviour, notification, or answer settings
 - invalid notification channels are skipped and fall back to the default bell channel if none are valid
-- ask settings behaviour and notification enabled changes persist immediately from the settings list; config reset is guarded by a short double-press confirmation
+- ask settings behaviour and notification enabled changes attempt to persist immediately from the settings list; save failures revert the change and show an error; config reset is guarded by a short double-press confirmation
 - `presentSingleAsMulti` is applied at ask-flow creation; toggling it does not rewrite already-normalized questions in an open flow
 - `main.changeQuestionType` changes the active question type live (non-preview: `single <-> multi`; preview: `preview <-> multi`) and may require confirmation before destructive multi-to-single conversion
-- when the ask config file is missing, the first ask use writes a default persisted config snapshot under `~/.pi/agent/extensions/`
-- legacy root config files move into `~/.pi/agent/extensions/` only when the current config file is absent
+- when the ask config file is missing, the first ask use attempts to write a default persisted config snapshot under `~/.pi/agent/extensions/`; if writing fails, built-in defaults are used for the session
+- legacy root config files are read as a fallback only when the current config file is absent; disk is left untouched
+- invalid config files are left untouched; defaults are loaded for the session with a notice
 - live config updates can affect an in-progress ask flow immediately
 
 ## Documentation rule

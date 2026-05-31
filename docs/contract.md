@@ -213,7 +213,7 @@ This document defines the stable external behavior. It does not explain internal
 - `/ask:replay` command to replay the latest real `ask_user` form on the current branch
 - ask settings list with binary behaviour/notification toggles and a guarded reset-to-defaults action
 - `?` in the ask flow and `/ask-settings` in pi open the same lightweight ask settings overlay
-- settings persist immediately when changed: `Auto-submit when answered without notes`, `Confirm dismiss when dirty`, `Double-press review shortcuts`, `Notifications`, and `Show footer hints`; `Present single-select as multi-select` persists immediately but applies only to new/replayed ask flows; resetting config to defaults requires pressing the reset action twice within a short confirmation window
+- settings attempt to persist immediately when changed: `Auto-submit when answered without notes`, `Confirm dismiss when dirty`, `Double-press review shortcuts`, `Notifications`, and `Show footer hints`; `Present single-select as multi-select` persists immediately when saving succeeds but applies only to new/replayed ask flows; save failures revert the setting and show a manual-edit message; resetting config to defaults requires pressing the reset action twice within a short confirmation window
 - `Keymaps` is a persisted, context-aware config section for global, main-flow, editor, note-editor, and settings-modal actions
 - the settings list shows the absolute config file path for customizing keymaps, notifications, and extraction settings
 - if the flow is already on the review tab, all questions are answered, and no notes exist, enabling auto-submit can complete the current ask flow immediately
@@ -248,7 +248,7 @@ Settings modal:
 
 - `settingsModal.close` closes settings; defaults: `Esc`, `Ctrl+C`, `?`
 - `settingsModal.nextOption` / `settingsModal.previousOption` move between settings; defaults: `Down`, `Up`
-- `settingsModal.toggle` toggles the highlighted setting and saves immediately; on the reset action, the same binding must be pressed twice within a short confirmation window; defaults: `Enter`, `Space`
+- `settingsModal.toggle` toggles the highlighted setting and attempts to save immediately; if saving fails, the setting reverts and an error is shown; on the reset action, the same binding must be pressed twice within a short confirmation window; defaults: `Enter`, `Space`
 
 Dirty dismiss:
 
@@ -261,7 +261,7 @@ If `ctx.hasUI === false`, the tool returns a `Needs user input` message in `cont
 
 Validation is handled inside the tool so malformed calls produce the same structured error shape as other invalid payloads instead of relying on pre-execution schema failures.
 
-The ask flow subscribes to runtime settings updates while open. In practice, this means changing `Auto-submit when answered without notes`, `Confirm dismiss when dirty`, `Double-press review shortcuts`, `Notifications`, `Show footer hints`, resetting config to defaults, or reloading config-backed keymaps can affect the in-progress ask flow immediately instead of only future asks. `Present single-select as multi-select` is applied when an ask flow is created and does not rewrite question semantics for an already-open flow; use `main.changeQuestionType` for live per-question changes.
+The ask flow subscribes to runtime settings updates while open. In practice, this means changing `Auto-submit when answered without notes`, `Confirm dismiss when dirty`, `Double-press review shortcuts`, `Notifications`, `Show footer hints`, resetting config to defaults, or reloading config-backed keymaps can affect the in-progress ask flow immediately instead of only future asks when the change is saved or otherwise applied in memory. Load-time migrations and invalid config handling do not rewrite, rename, or back up the config file; invalid files load defaults for the session and show a notice. `Present single-select as multi-select` is applied when an ask flow is created and does not rewrite question semantics for an already-open flow; use `main.changeQuestionType` for live per-question changes.
 
 ## Notifications
 

@@ -121,8 +121,8 @@ export class AskSettingsList {
 	private error?: string;
 	private focusIndex = 0;
 	private resetConfirmUntil = 0;
+	private notice?: AskConfigNotice;
 	private readonly configPath: string;
-	private readonly notice?: AskConfigNotice;
 	private readonly onClose: () => void;
 	private readonly onSave: (config: AskConfig) => Promise<AskConfig>;
 	private readonly theme: Theme;
@@ -264,11 +264,14 @@ export class AskSettingsList {
 	}
 
 	private appendNotice(lines: string[], innerWidth: number): void {
-		if (this.notice?.kind === "error") {
+		if (this.notice) {
 			lines.push(this.line("", innerWidth));
 			this.appendWrapped(
 				lines,
-				this.theme.fg("warning", this.notice.text),
+				this.theme.fg(
+					this.notice.kind === "success" ? "accent" : "warning",
+					this.notice.text
+				),
 				innerWidth
 			);
 		}
@@ -407,6 +410,7 @@ export class AskSettingsList {
 		this.onSave(nextConfig)
 			.then((savedConfig) => {
 				this.config = savedConfig;
+				this.notice = undefined;
 				this.tui.requestRender();
 			})
 			.catch((error: unknown) => {

@@ -65,12 +65,14 @@ interface AskFlowOptions {
 type AskFlowParams = AskParams &
 	Pick<ExtensionContext, "cwd"> & {
 		config: AskConfig;
+		configNotice?: string;
 		ctx: ExtensionContext;
 		flowOptions: AskFlowOptions;
 	};
 
 interface AskFlowController {
 	config: AskConfig;
+	configNotice?: string;
 	ctx: ExtensionContext;
 	dismissNotice?: string;
 	done: Done;
@@ -91,7 +93,7 @@ export async function runAskFlow(
 	options: AskFlowOptions = {}
 ): Promise<AskResult> {
 	const store = getAskConfigStore();
-	const config = await store.getConfig();
+	const { config, notice } = await store.ensureLoaded();
 	const flowOptions = {
 		...options,
 		presentSingleAsMulti:
@@ -101,6 +103,7 @@ export async function runAskFlow(
 		createAskFlowController(args, {
 			...params,
 			config,
+			configNotice: notice?.text,
 			cwd: ctx.cwd,
 			ctx,
 			flowOptions,
@@ -119,6 +122,7 @@ function createAskFlowController(
 ) {
 	const controller: AskFlowController = {
 		config: params.config,
+		configNotice: params.configNotice,
 		ctx: params.ctx,
 		dismissNotice: undefined,
 		done,
@@ -137,6 +141,7 @@ function createAskFlowController(
 
 	controller.unsubscribeConfig = getAskConfigStore().subscribe((config) => {
 		controller.config = config;
+		controller.configNotice = undefined;
 		controller.state = maybeAutoSubmitState(
 			controller.state,
 			controller.config
@@ -172,7 +177,7 @@ function renderController(
 	return renderAskScreen({
 		config: controller.config,
 		editor: controller.editor,
-		footerNotice: getDismissNotice(controller),
+		footerNotice: getFooterNotice(controller),
 		reviewShortcutHint: getActiveReviewShortcutHint(controller),
 		state: controller.state,
 		theme: controller.theme,
@@ -378,7 +383,7 @@ function commitState(
 	options: { finish?: boolean; syncSelection?: boolean } = {}
 ) {
 	if (nextState.activeTabIndex !== controller.state.activeTabIndex) {
-		clearDismissNotice(controller);
+		clearFooterNotices(controller);
 	}
 	controller.suppressAutoInputForSelection = false;
 	controller.state = nextState;
@@ -397,7 +402,7 @@ function submitEditor(controller: AskFlowController, value: string) {
 	controller.suppressAutoInputForSelection = false;
 	const nextState = submitEditorDraft(controller.state, value);
 	if (nextState.activeTabIndex !== controller.state.activeTabIndex) {
-		clearDismissNotice(controller);
+		clearFooterNotices(controller);
 	}
 	controller.state = nextState;
 	syncSelection(controller);
@@ -447,7 +452,8 @@ function shouldRequestDismissConfirmation(
 	});
 }
 
-function clearDismissNotice(controller: AskFlowController) {
+function clearFooterNotices(controller: AskFlowController) {
+	controller.configNotice = undefined;
 	controller.dismissNotice = undefined;
 }
 
@@ -505,8 +511,8 @@ function handleReviewShortcutNumber(
 	return true;
 }
 
-function getDismissNotice(controller: AskFlowController): string | undefined {
-	return controller.dismissNotice;
+function getFooterNotice(controller: AskFlowController): string | undefined {
+	return controller.dismissNotice ?? controller.configNotice;
 }
 
 function showSettingsModal(controller: AskFlowController) {

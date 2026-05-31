@@ -8,21 +8,23 @@ When changing pi-ask settings:
 2. Validate keymaps against the rules below.
 3. Run `/reload` or restart pi so the new config is picked up.
 
+pi-ask treats this file as user-owned config. It does not rewrite or back up the file just because it was loaded, migrated, or found invalid. Settings toggled in `/ask-settings` are saved only when the file is writable; if saving fails, pi-ask reverts the toggle and shows the config path to edit manually.
+
 ## Config file path
 
 Default path:
 
 `~/.pi/agent/extensions/eko24ive-pi-ask.json`
 
-If the file does not exist yet, pi-ask creates it with the current default settings the first time the ask flow is used.
+If the file does not exist yet, pi-ask attempts to create it with the current default settings the first time the ask flow is used. If the config location is read-only or managed outside pi-ask, pi-ask uses built-in defaults for the session and leaves disk unchanged.
 
-Older pi-ask versions wrote this file at `~/.pi/agent/eko24ive-pi-ask.json`. If that legacy file exists and the extensions config does not, pi-ask moves it into `~/.pi/agent/extensions/` on load. If both files exist, pi-ask uses the extensions config and leaves the legacy root file untouched.
+Older pi-ask versions wrote this file at `~/.pi/agent/eko24ive-pi-ask.json`. If that legacy file exists and the extensions config does not, pi-ask reads the legacy file as a fallback and leaves disk unchanged. If both files exist, pi-ask uses the extensions config and leaves the legacy root file untouched.
 
 ## Config versions and migrations
 
-`schemaVersion` identifies the persisted config shape. pi-ask migrates older supported schema versions forward before validation, then rewrites the file in the current shape. Migrations preserve existing user-provided values and add new fields from defaults when needed.
+`schemaVersion` identifies the persisted config shape. pi-ask migrates older supported schema versions forward in memory before validation. Migrations preserve existing user-provided values and add new fields from defaults when needed, but loading a config does not rewrite the file.
 
-Unsupported future versions or invalid files are backed up and defaults are loaded.
+Unsupported future versions or invalid files are left unchanged and defaults are loaded for the current session. Fix the file, then run `/reload` or restart pi.
 
 ## Config shape
 

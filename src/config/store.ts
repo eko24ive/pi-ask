@@ -1,7 +1,5 @@
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-
-const JSON_EXTENSION_PATTERN = /\.json$/u;
 
 import { getAgentDir } from "@earendil-works/pi-coding-agent";
 import {
@@ -10,8 +8,12 @@ import {
 	toAskConfigFileV5,
 } from "./defaults.ts";
 import { AskConfigMigrationError, migrateAskConfig } from "./migrate.ts";
-import { migrateAskConfigPathIfNeeded } from "./path-migrations.ts";
 import type { AskConfig } from "./schema.ts";
+
+const INVALID_CONFIG_NOTICE =
+	"Config was invalid or unsupported. Loaded defaults for this session and left the config file unchanged. Edit the config file or run /reload after fixing it.";
+const MIGRATION_FAILED_NOTICE =
+	"Config migration failed. Loaded defaults for this session and left the config file unchanged. Edit the config file or run /reload after fixing it.";
 
 export interface AskConfigNotice {
 	kind: "error" | "warning" | "success";
@@ -70,8 +72,12 @@ export class AskConfigStore {
 			null,
 			2
 		).concat("\n");
-		await mkdir(dirname(this.configPath), { recursive: true });
-		await writeFile(this.configPath, content, "utf-8");
+		try {
+			await mkdir(dirname(this.configPath), { recursive: true });
+			await writeFile(this.configPath, content, "utf-8");
+		} catch (error) {
+			throw createConfigSaveError(this.configPath, error);
+		}
 		this.setConfig(normalized);
 		return normalized;
 	}
@@ -85,33 +91,47 @@ export class AskConfigStore {
 	}
 
 	private async loadFromDisk(): Promise<AskConfigLoadResult> {
-		await this.migrateLegacyConfigIfNeeded();
-		let content: string;
-		try {
-			content = await readFile(this.configPath, "utf-8");
-		} catch (error) {
-			if (isMissingFileError(error)) {
-				const config = normalizeAskConfig(DEFAULT_ASK_CONFIG);
-				await this.save(config);
-				return { config };
+		const content = await this.readDiskConfig();
+		if (content === undefined) {
+			return this.loadMissingConfig();
+		}
+
+		const parsed = parseJson(content);
+		if (!parsed.ok) {
+			return this.loadDefaultsWithNotice(INVALID_CONFIG_NOTICE);
+		}
+
+		return this.loadParsedConfig(parsed.value);
+	}
+
+	private async readDiskConfig(): Promise<string | undefined> {
+		for (const path of [this.configPath, ...this.legacyConfigPaths]) {
+			const content = await readConfigFileIfPresent(path);
+			if (content !== undefined) {
+				return content;
 			}
-			throw error;
 		}
+	}
 
-		let parsed: unknown;
+	private async loadMissingConfig(): Promise<AskConfigLoadResult> {
+		const config = normalizeAskConfig(DEFAULT_ASK_CONFIG);
 		try {
-			parsed = JSON.parse(content);
-		} catch {
-			return this.backupAndReset(
-				"Config was invalid or unsupported. Backed it up and loaded defaults. Change any behaviour setting or edit the config file to save a fresh config."
-			);
+			await this.save(config);
+			return { config };
+		} catch (saveError) {
+			return {
+				config,
+				notice: {
+					kind: "warning",
+					text: getErrorMessage(saveError),
+				},
+			};
 		}
+	}
 
+	private loadParsedConfig(parsed: unknown): AskConfigLoadResult {
 		try {
 			const migrated = migrateAskConfig(parsed);
-			if (migrated.migrated) {
-				await this.save(migrated.config);
-			}
 			return {
 				config: migrated.config,
 				notice: migrated.notice
@@ -123,20 +143,17 @@ export class AskConfigStore {
 			};
 		} catch (error) {
 			if (error instanceof AskConfigMigrationError) {
-				return this.backupAndReset(
+				return this.loadDefaultsWithNotice(
 					error.reason === "migration_failed"
-						? "Config migration failed. Backed up old config and loaded defaults. Change any behaviour setting or edit the config file to save a fresh config."
-						: "Config was invalid or unsupported. Backed it up and loaded defaults. Change any behaviour setting or edit the config file to save a fresh config."
+						? MIGRATION_FAILED_NOTICE
+						: INVALID_CONFIG_NOTICE
 				);
 			}
 			throw error;
 		}
 	}
 
-	private async backupAndReset(text: string): Promise<AskConfigLoadResult> {
-		const backupPath = createBackupPath(this.configPath, new Date());
-		await mkdir(dirname(this.configPath), { recursive: true });
-		await rename(this.configPath, backupPath);
+	private loadDefaultsWithNotice(text: string): AskConfigLoadResult {
 		return {
 			config: normalizeAskConfig(DEFAULT_ASK_CONFIG),
 			notice: {
@@ -144,13 +161,6 @@ export class AskConfigStore {
 				text,
 			},
 		};
-	}
-
-	private async migrateLegacyConfigIfNeeded(): Promise<void> {
-		await migrateAskConfigPathIfNeeded({
-			currentPath: this.configPath,
-			legacyPaths: this.legacyConfigPaths,
-		});
 	}
 }
 
@@ -169,9 +179,38 @@ export function getLegacyAskConfigPaths(): string[] {
 	return [join(getAgentDir(), "eko24ive-pi-ask.json")];
 }
 
-function createBackupPath(path: string, date: Date): string {
-	const timestamp = date.toISOString().replaceAll(":", "-").replace(/\./g, "-");
-	return path.replace(JSON_EXTENSION_PATTERN, `.${timestamp}.bak.json`);
+function createConfigSaveError(path: string, error: unknown): Error {
+	const detail = getErrorMessage(error);
+	return new Error(
+		`Unable to save ask config at ${path}. The file may be read-only or managed outside pi-ask; edit it manually and run /reload. ${detail}`
+	);
+}
+
+function parseJson(
+	content: string
+): { ok: true; value: unknown } | { ok: false } {
+	try {
+		return { ok: true, value: JSON.parse(content) };
+	} catch {
+		return { ok: false };
+	}
+}
+
+async function readConfigFileIfPresent(
+	path: string
+): Promise<string | undefined> {
+	try {
+		return await readFile(path, "utf-8");
+	} catch (error) {
+		if (isMissingFileError(error)) {
+			return;
+		}
+		throw error;
+	}
+}
+
+function getErrorMessage(error: unknown): string {
+	return error instanceof Error ? error.message : String(error);
 }
 
 function isMissingFileError(error: unknown): boolean {

@@ -3,6 +3,7 @@ import test from "node:test";
 import { visibleWidth } from "@earendil-works/pi-tui";
 import { DEFAULT_ASK_CONFIG } from "../src/config/defaults.ts";
 import type { AskConfig } from "../src/config/schema.ts";
+import type { AskConfigNotice } from "../src/config/store.ts";
 import { AskSettingsList } from "../src/ui/settings-list.ts";
 
 const savedConfig: AskConfig = {
@@ -36,6 +37,7 @@ function plainTheme() {
 
 function createList(
 	options: {
+		notice?: AskConfigNotice;
 		onClose?: () => void;
 		onSave?: (config: AskConfig) => Promise<AskConfig>;
 		savedConfig?: AskConfig;
@@ -48,7 +50,7 @@ function createList(
 		});
 	return new AskSettingsList(plainTheme(), {
 		configPath: "/tmp/eko24ive-pi-ask.json",
-		notice: undefined,
+		notice: options.notice,
 		onClose,
 		onSave: options.onSave ?? ((config) => Promise.resolve(config)),
 		savedConfig: options.savedConfig ?? savedConfig,
@@ -128,6 +130,38 @@ test("settings list shows save failures and reverts the toggle", async () => {
 	assert(text.includes("disk nope"));
 	assert(text.includes("Auto-submit when answered without notes"));
 	assert(text.includes("[off]"));
+});
+
+test("settings list renders load warnings", () => {
+	const list = createList({
+		notice: {
+			kind: "warning",
+			text: "Unable to save ask config; edit it manually.",
+		},
+	});
+
+	const text = list.render(72).join("\n");
+
+	assert(text.includes("Unable to save ask config; edit it manually."));
+});
+
+test("settings list clears load warnings after successful save", async () => {
+	const list = createList({
+		notice: {
+			kind: "warning",
+			text: "Unable to save ask config; edit it manually.",
+		},
+	});
+
+	list.handleInput(" ");
+	await new Promise((resolve) => setImmediate(resolve));
+
+	const text = list.render(72).join("\n");
+
+	assert.equal(
+		text.includes("Unable to save ask config; edit it manually."),
+		false
+	);
 });
 
 test("settings list uses configured navigation and close keys", async () => {
