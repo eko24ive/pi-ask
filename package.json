@@ -24,6 +24,8 @@
     "src/",
     "skills/",
     "docs/configuration.md",
+    "docs/contract.md",
+    "docs/remote-events.md",
     "README.md",
     "LICENSE",
     "CHANGELOG.md"

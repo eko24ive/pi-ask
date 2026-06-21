@@ -6,6 +6,14 @@ import {
 	createQuestionWaitingNotification,
 	notifyQuestionWaiting,
 } from "../notifications.ts";
+import {
+	applyRemoteAskResponse,
+	type RemoteAskFlowHandle,
+	type RemoteAskResponse,
+	type RemoteAskRuntime,
+	type RemoteAskSource,
+	type RemoteAskSubmitResolution,
+} from "../remote-ask.ts";
 import { createInitialState } from "../state/create.ts";
 import {
 	getEditorDraft,
@@ -60,6 +68,11 @@ type Done = (result: AskResult) => void;
 interface AskFlowOptions {
 	allowFreeform?: boolean;
 	presentSingleAsMulti?: boolean;
+	remote?: {
+		runtime: RemoteAskRuntime;
+		source: RemoteAskSource;
+		toolCallId?: string;
+	};
 }
 
 type AskFlowParams = AskParams &
@@ -79,6 +92,7 @@ interface AskFlowController {
 	editor: Editor;
 	pendingQuestionTypeChangeQuestionId?: string;
 	pendingReviewShortcutActionIndex?: number;
+	remoteFlow?: RemoteAskFlowHandle;
 	settingsOpen: boolean;
 	state: AskState;
 	suppressAutoInputForSelection: boolean;
@@ -151,6 +165,7 @@ function createAskFlowController(
 	});
 
 	controller.editor.onSubmit = (value) => submitEditor(controller, value);
+	controller.remoteFlow = startRemoteFlow(controller, params);
 	syncSelection(controller);
 	notifyCurrentQuestion(controller).catch(() => {
 		// Notification failures are best-effort and must not affect the ask flow.
@@ -165,6 +180,7 @@ function createAskFlowController(
 			handleControllerInput(controller, data);
 		},
 		dispose() {
+			controller.remoteFlow?.dispose();
 			controller.unsubscribeConfig();
 		},
 	};
@@ -545,8 +561,39 @@ async function notifyCurrentQuestion(
 
 function maybeFinish(controller: AskFlowController) {
 	if (controller.state.completed) {
-		controller.done(toAskResult(controller.state));
+		const result = toAskResult(controller.state);
+		controller.remoteFlow?.complete(result);
+		controller.done(result);
 	}
+}
+
+function startRemoteFlow(
+	controller: AskFlowController,
+	params: AskFlowParams
+): RemoteAskFlowHandle | undefined {
+	const remote = params.flowOptions.remote;
+	if (!remote) {
+		return;
+	}
+	return remote.runtime.startFlow({
+		source: remote.source,
+		toolCallId: remote.toolCallId,
+		title: controller.state.title,
+		questions: controller.state.questions,
+		onSubmit: (response) => submitRemoteResponse(controller, response),
+	});
+}
+
+function submitRemoteResponse(
+	controller: AskFlowController,
+	response: RemoteAskResponse
+): RemoteAskSubmitResolution {
+	const resolution = applyRemoteAskResponse(controller.state, response);
+	if (!resolution.ok) {
+		return resolution;
+	}
+	commitState(controller, resolution.state, { finish: true });
+	return { ok: true };
 }
 
 function hydrateEditor(controller: AskFlowController) {

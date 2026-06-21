@@ -14,11 +14,15 @@ import {
 	validateParams,
 } from "./ask-tool-helpers.ts";
 import { getAskConfigStore } from "./config/store.ts";
+import type { RemoteAskRuntime } from "./remote-ask.ts";
 import { AskParamsSchema } from "./schema.ts";
 import type { AskParams } from "./types.ts";
 import { runAskFlow } from "./ui/controller.ts";
 
-export function registerAskTool(pi: ExtensionAPI) {
+export function registerAskTool(
+	pi: ExtensionAPI,
+	remoteAsk?: RemoteAskRuntime
+) {
 	pi.registerTool({
 		name: "ask_user",
 		label: "Ask User",
@@ -34,7 +38,8 @@ export function registerAskTool(pi: ExtensionAPI) {
 				params as AskParams,
 				signal,
 				onUpdate,
-				ctx
+				ctx,
+				remoteAsk
 			),
 		renderCall: renderAskToolCall,
 		renderResult: renderAskToolResult,
@@ -47,7 +52,8 @@ async function executeAskTool(
 	params: AskParams,
 	_signal: AbortSignal | undefined,
 	_onUpdate: unknown,
-	ctx: ExtensionContext
+	ctx: ExtensionContext,
+	remoteAsk?: RemoteAskRuntime
 ) {
 	const config = await getAskConfigStore().getConfig();
 	const validation = validateParams(params, {
@@ -66,7 +72,11 @@ async function executeAskTool(
 	}
 	ctx.ui.setWorkingVisible(false);
 	try {
-		const result = await runAskFlow(ctx, params);
+		const result = await runAskFlow(ctx, params, {
+			remote: remoteAsk
+				? { runtime: remoteAsk, source: "tool", toolCallId }
+				: undefined,
+		});
 		return successfulResponse(result);
 	} finally {
 		ctx.ui.setWorkingVisible(true);

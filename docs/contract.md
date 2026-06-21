@@ -267,6 +267,21 @@ The ask flow subscribes to runtime settings updates while open. In practice, thi
 
 When enabled, pi-ask emits one best-effort external notification per ask session after the ask UI opens and waits for input. The default title is `pi ask`; the message is `Question waiting: <label or prompt>`. Channels run in configured order and failures never fail or cancel the ask flow.
 
+## Remote inter-extension events
+
+pi-ask exposes a local `pi.events` contract for trusted Pi extensions. It does not expose a network API and does not automate terminal keystrokes.
+
+Channels:
+
+- `@eko24ive/pi-ask:started`
+- `@eko24ive/pi-ask:completed`
+- `@eko24ive/pi-ask:submit`
+- `@eko24ive/pi-ask:submit-result`
+
+Remote submissions must be explicit `{ kind: "answer" }` or `{ kind: "cancel" }` responses. Remote answers use question ids and normalized option values from the started event. pi-ask validates ids and values, recomputes labels/indices, and does not infer approval semantics from labels.
+
+See [`remote-events.md`](remote-events.md) for payload shapes, examples, and a local smoke test.
+
 ## Slash command replay/extraction
 
 - valid `ask_user` payloads are persisted as branch custom entries before the UI opens, so `/ask:replay` can reopen them after cancel, `/resume`, or `/tree`

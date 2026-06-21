@@ -19,6 +19,7 @@ import {
 	validateParams,
 } from "./ask-tool-helpers.ts";
 import { getAskConfigStore } from "./config/store.ts";
+import type { RemoteAskRuntime, RemoteAskSource } from "./remote-ask.ts";
 import type { AskParams, AskResult } from "./types.ts";
 import { runAskFlow } from "./ui/controller.ts";
 
@@ -37,11 +38,14 @@ type ExtractionUiResult =
 	| { error: string }
 	| { params: AskParams };
 
-export function registerAnswerCommands(pi: ExtensionAPI): void {
+export function registerAnswerCommands(
+	pi: ExtensionAPI,
+	remoteAsk?: RemoteAskRuntime
+): void {
 	pi.registerCommand("answer", {
 		description:
 			"Extract questions from the latest assistant message into an ask form",
-		handler: async (_args, ctx) => runAnswerCommand(pi, ctx),
+		handler: async (_args, ctx) => runAnswerCommand(pi, ctx, remoteAsk),
 	});
 
 	pi.registerCommand("answer:again", {
@@ -51,7 +55,9 @@ export function registerAnswerCommands(pi: ExtensionAPI): void {
 				missingMessage:
 					"No previous /answer form found on this branch; use /answer first.",
 				noticePrefix: "Reopening previous /answer form on this branch",
+				remoteSource: "answer:again",
 				source: "answer-extraction",
+				remoteAsk,
 			}),
 	});
 
@@ -61,14 +67,17 @@ export function registerAnswerCommands(pi: ExtensionAPI): void {
 			runReplayCommand(pi, ctx, {
 				missingMessage: "No previous ask_user form found on this branch.",
 				noticePrefix: "Replaying previous ask_user form on this branch",
+				remoteSource: "ask:replay",
 				source: "tool",
+				remoteAsk,
 			}),
 	});
 }
 
 async function runAnswerCommand(
 	pi: ExtensionAPI,
-	ctx: ExtensionCommandContext
+	ctx: ExtensionCommandContext,
+	remoteAsk?: RemoteAskRuntime
 ): Promise<void> {
 	if (!ctx.hasUI) {
 		ctx.ui.notify("/answer requires interactive UI.", "error");
@@ -115,6 +124,8 @@ async function runAnswerCommand(
 
 	await runAskAndSendSubmittedResult(pi, ctx, params, {
 		allowFreeform: true,
+		remoteAsk,
+		remoteSource: "answer",
 	});
 }
 
@@ -237,6 +248,8 @@ async function runReplayCommand(
 	options: {
 		missingMessage: string;
 		noticePrefix: string;
+		remoteAsk?: RemoteAskRuntime;
+		remoteSource: RemoteAskSource;
 		source: AskPayloadSource;
 	}
 ): Promise<void> {
@@ -260,6 +273,8 @@ async function runReplayCommand(
 	);
 	await runAskAndSendSubmittedResult(pi, ctx, lookup.data.params, {
 		allowFreeform: options.source === "answer-extraction",
+		remoteAsk: options.remoteAsk,
+		remoteSource: options.remoteSource,
 	});
 }
 
@@ -267,10 +282,19 @@ async function runAskAndSendSubmittedResult(
 	pi: Pick<ExtensionAPI, "sendUserMessage">,
 	ctx: ExtensionContext,
 	params: AskParams,
-	options: { allowFreeform: boolean }
+	options: {
+		allowFreeform: boolean;
+		remoteAsk?: RemoteAskRuntime;
+		remoteSource: RemoteAskSource;
+	}
 ): Promise<void> {
 	const result = await withHiddenWorkingRow(ctx, () =>
-		runAskFlow(ctx, params, options)
+		runAskFlow(ctx, params, {
+			allowFreeform: options.allowFreeform,
+			remote: options.remoteAsk
+				? { runtime: options.remoteAsk, source: options.remoteSource }
+				: undefined,
+		})
 	);
 	if (result.cancelled) {
 		ctx.ui.notify("Ask form cancelled.", "info");

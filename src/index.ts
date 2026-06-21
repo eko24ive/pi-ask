@@ -4,6 +4,7 @@ import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { registerAnswerCommands } from "./answer-commands.ts";
 import { registerAskSettingsCommand } from "./ask-settings-command.ts";
 import { registerAskTool } from "./ask-tool.ts";
+import { createRemoteAskRuntime } from "./remote-ask.ts";
 
 const PACKAGE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const CONFIGURATION_DOC_PATH = resolve(
@@ -17,7 +18,8 @@ export default function askExtension(pi: ExtensionAPI) {
 	pi.on("before_agent_start", async (event) => ({
 		systemPrompt: `${event.systemPrompt}\n\n${PI_ASK_CONFIG_PROMPT}`,
 	}));
-	registerAskTool(pi);
+	const remoteAsk = createRemoteAskRuntime(pi.events);
+	registerAskTool(pi, remoteAsk);
 	registerAskSettingsCommand(pi);
-	registerAnswerCommands(pi);
+	registerAnswerCommands(pi, remoteAsk);
 }

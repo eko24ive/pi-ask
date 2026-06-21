@@ -19,6 +19,7 @@ The codebase is split so the implementation reads through file boundaries and na
 - `src/answer-extraction.ts` — configured extraction model selection and raw-JSON extraction retries
 - `src/ask-payload-store.ts` — branch-aware persisted ask payload lookup
 - `src/notifications.ts` — best-effort ask notification payload rendering and channel execution
+- `src/remote-ask.ts` — package-prefixed local event contract, active-flow registry, and explicit remote submission validation
 - `src/schema.ts` — TypeBox schema
 - `src/types.ts` — shared types
 
@@ -86,6 +87,7 @@ The codebase is split so the implementation reads through file boundaries and na
 - legacy root config files are read as a fallback only when the current config file is absent; disk is left untouched
 - invalid config files are left untouched; defaults are loaded for the session with a notice
 - live config updates can affect an in-progress ask flow immediately
+- remote ask submissions must be explicit `answer` or `cancel` responses; pi-ask validates ids/values but never infers approve/deny semantics from labels or option values
 
 ## Documentation rule
 
