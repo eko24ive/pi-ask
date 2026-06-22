@@ -172,6 +172,45 @@ test("started event questions are cloned", async () => {
 	assert.equal(questions[0].options[0].label, "Yes");
 });
 
+test("remote runtime disposes active flows and submit listener", () => {
+	const bus = new TestEventBus();
+	const remoteAsk = createRemoteAskRuntime(bus as never);
+	let submitCalls = 0;
+	const flow = remoteAsk.startFlow({
+		source: "tool",
+		questions: createInitialState({
+			questions: [
+				{
+					id: "decision",
+					prompt: "Proceed?",
+					options: [{ value: "yes", label: "Yes" }],
+				},
+			],
+		}).questions,
+		onSubmit: () => {
+			submitCalls += 1;
+			return { ok: true };
+		},
+	});
+	remoteAsk.disposeAll();
+
+	bus.emit(PI_ASK_SUBMIT_EVENT, {
+		version: 1,
+		requestId: "request-1",
+		flowId: flow.flowId,
+		response: {
+			kind: "answer",
+			answers: { decision: { values: ["yes"] } },
+		},
+	});
+
+	assert.equal(submitCalls, 0);
+	assert.equal(
+		bus.events.some((event) => event.channel === PI_ASK_SUBMIT_RESULT_EVENT),
+		false
+	);
+});
+
 test("remote submit resolves an active ask flow and emits lifecycle events", async () => {
 	getAskConfigStore().setConfig({
 		...DEFAULT_ASK_CONFIG,
@@ -197,6 +236,7 @@ test("remote submit resolves an active ask flow and emits lifecycle events", asy
 	const result = await runAskFlow(
 		{
 			cwd: process.cwd(),
+			mode: "tui",
 			ui: {
 				custom(callback: (...args: unknown[]) => unknown) {
 					return new Promise((resolve) => {

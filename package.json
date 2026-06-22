@@ -93,9 +93,9 @@
     "@biomejs/biome": "2.4.12",
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
-    "@earendil-works/pi-ai": "0.75.4",
-    "@earendil-works/pi-coding-agent": "0.75.4",
-    "@earendil-works/pi-tui": "0.75.4",
+    "@earendil-works/pi-ai": "0.79.9",
+    "@earendil-works/pi-coding-agent": "0.79.9",
+    "@earendil-works/pi-tui": "0.79.9",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^13.0.1",
     "@semantic-release/git": "^10.0.1",
@@ -118,10 +118,10 @@
   },
   "pnpm": {
     "overrides": {
-      "@earendil-works/pi-agent-core": "0.75.4",
-      "@earendil-works/pi-ai": "0.75.4",
-      "@earendil-works/pi-tui": "0.75.4",
-      "@earendil-works/pi-coding-agent": "0.75.4"
+      "@earendil-works/pi-agent-core": "0.79.9",
+      "@earendil-works/pi-ai": "0.79.9",
+      "@earendil-works/pi-tui": "0.79.9",
+      "@earendil-works/pi-coding-agent": "0.79.9"
     },
     "ignoredBuiltDependencies": [
       "lefthook"

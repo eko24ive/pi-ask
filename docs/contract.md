@@ -255,9 +255,9 @@ Dirty dismiss:
 - when `Confirm dismiss when dirty` is enabled, cancelling or dismissing a dirty ask flow requires the same action a second time
 - the dirty-dismiss warning stays visible until the user changes tabs in the ask flow
 
-## Non-interactive mode
+## Non-TUI and non-interactive modes
 
-If `ctx.hasUI === false`, the tool returns a `Needs user input` message in `content` and a cancelled result in `details`.
+The rich ask flow uses `ctx.ui.custom()` and opens only in TUI mode. In print, JSON, RPC, or any other non-TUI mode, the tool returns a `Needs user input: ask_user requires interactive TUI mode.` message in `content` and a cancelled result in `details` instead of opening custom UI.
 
 Validation is handled inside the tool so malformed calls produce the same structured error shape as other invalid payloads instead of relying on pre-execution schema failures.
 
@@ -269,7 +269,7 @@ When enabled, pi-ask emits one best-effort external notification per ask session
 
 ## Remote inter-extension events
 
-pi-ask exposes a local `pi.events` contract for trusted Pi extensions. It does not expose a network API and does not automate terminal keystrokes.
+pi-ask exposes a local `pi.events` contract for trusted Pi extensions. It does not expose a network API and does not automate terminal keystrokes. RPC or headless integrations should use a trusted in-process bridge extension that consumes these events rather than expecting the TUI-only custom surface to open.
 
 Channels:
 

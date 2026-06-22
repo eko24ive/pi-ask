@@ -171,6 +171,10 @@ export function getAskConfigStore(): AskConfigStore {
 	return askConfigStore;
 }
 
+export function resetAskConfigStore(): void {
+	askConfigStore = undefined;
+}
+
 export function getAskConfigPath(): string {
 	return join(getAgentDir(), "extensions", "eko24ive-pi-ask.json");
 }

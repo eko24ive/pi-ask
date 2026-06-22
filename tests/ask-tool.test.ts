@@ -4,7 +4,7 @@ import { registerAskTool } from "../src/ask-tool.ts";
 import type { AskParams } from "../src/types.ts";
 
 const NON_INTERACTIVE_MESSAGE_RE =
-	/Needs user input: ask_user requires interactive UI\./;
+	/Needs user input: ask_user requires interactive TUI mode\./;
 const FIRST_QUESTION_RE = /1\. Goal: What should I optimize for\?/;
 const SPEED_OPTION_RE = /- Speed \[speed\]/;
 const CUSTOM_OPTION_RE = /- Type your own \[custom\]/;
@@ -47,8 +47,8 @@ function registerMockTool() {
 	};
 }
 
-function makeCtx(hasUi: boolean): unknown {
-	return { [HAS_UI]: hasUi };
+function makeCtx(hasUi: boolean, mode = hasUi ? "tui" : "print"): unknown {
+	return { [HAS_UI]: hasUi, mode };
 }
 
 function sampleParams(): AskParams {
@@ -111,6 +111,25 @@ test("ask tool returns pending questions in non-interactive mode", async () => {
 	assert.match(result.content[0].text, FIRST_QUESTION_RE);
 	assert.match(result.content[0].text, SPEED_OPTION_RE);
 	assert.match(result.content[0].text, CUSTOM_OPTION_RE);
+});
+
+test("ask tool does not open custom UI outside TUI mode", async () => {
+	const { tool } = registerMockTool();
+	let customOpened = false;
+
+	const result = await tool.execute("call-1", sampleParams(), undefined, noop, {
+		[HAS_UI]: true,
+		mode: "rpc",
+		ui: {
+			custom() {
+				customOpened = true;
+			},
+		},
+	});
+
+	assert.equal(customOpened, false);
+	assert.equal(result.details.cancelled, true);
+	assert.match(result.content[0].text, NON_INTERACTIVE_MESSAGE_RE);
 });
 
 test("ask tool includes custom answer fallback for preview questions", async () => {

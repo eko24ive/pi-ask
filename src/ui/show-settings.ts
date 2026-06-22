@@ -3,11 +3,15 @@ import { getAskConfigPath, getAskConfigStore } from "../config/store.ts";
 import { AskSettingsList } from "./settings-list.ts";
 
 export async function showAskSettings(
-	ui: Pick<ExtensionContext, "ui">["ui"]
+	ctx: Pick<ExtensionContext, "mode" | "ui">
 ): Promise<void> {
+	if (ctx.mode !== "tui") {
+		ctx.ui.notify("/ask-settings requires interactive TUI mode.", "error");
+		return;
+	}
 	const store = getAskConfigStore();
 	const { config, notice } = await store.ensureLoaded();
-	return ui.custom<void>(
+	return ctx.ui.custom<void>(
 		(tui, theme, _keybindings, done) =>
 			new AskSettingsList(theme, {
 				configPath: getAskConfigPath(),

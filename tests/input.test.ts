@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { Editor } from "@earendil-works/pi-tui";
 import { DEFAULT_ASK_CONFIG } from "../src/config/defaults.ts";
 import { getAskConfigStore } from "../src/config/store.ts";
 import { createInitialState } from "../src/state/create.ts";
@@ -279,6 +280,7 @@ test("custom editor submit key controls actual editor submission", async () => {
 	const resultPromise = runAskFlow(
 		{
 			cwd: process.cwd(),
+			mode: "tui",
 			ui: {
 				custom(callback: (...args: unknown[]) => unknown) {
 					return new Promise((resolve) => {
@@ -330,6 +332,78 @@ function plainTheme() {
 		},
 	};
 }
+
+test("ask flow forwards focus and invalidation to its editor", async () => {
+	getAskConfigStore().setConfig({
+		...DEFAULT_ASK_CONFIG,
+		notifications: {
+			...DEFAULT_ASK_CONFIG.notifications,
+			enabled: false,
+		},
+	});
+	const originalInvalidate = Editor.prototype.invalidate;
+	let invalidateCalls = 0;
+	Editor.prototype.invalidate = function patchedInvalidate(this: Editor) {
+		invalidateCalls += 1;
+		return originalInvalidate.call(this);
+	};
+	let component:
+		| {
+				focused: boolean;
+				handleInput(data: string): void;
+				invalidate(): void;
+		  }
+		| undefined;
+
+	try {
+		const resultPromise = runAskFlow(
+			{
+				cwd: process.cwd(),
+				mode: "tui",
+				ui: {
+					custom(callback: (...args: unknown[]) => unknown) {
+						return new Promise((resolve) => {
+							component = callback(
+								{
+									requestRender() {
+										// Rendering is not needed for this controller test.
+									},
+								},
+								plainTheme(),
+								{},
+								resolve
+							) as typeof component;
+						});
+					},
+				},
+			} as never,
+			{
+				questions: [
+					{
+						id: "q1",
+						prompt: "Question?",
+						options: [{ value: "a", label: "A" }],
+					},
+				],
+			}
+		);
+
+		await new Promise((resolve) => setImmediate(resolve));
+		assert(component);
+		component.focused = true;
+		assert.equal(component.focused, true);
+		component.focused = false;
+		assert.equal(component.focused, false);
+		component.invalidate();
+		assert.equal(invalidateCalls, 1);
+		component.handleInput("\x1b");
+		const result = await resultPromise;
+		assert.equal(result.cancelled, true);
+	} finally {
+		Editor.prototype.invalidate = originalInvalidate;
+		getAskConfigStore().setConfig(DEFAULT_ASK_CONFIG);
+	}
+});
 
 test("custom configured note shortcuts are used at runtime", () => {
 	const navigation = createInitialState({

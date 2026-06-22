@@ -113,6 +113,12 @@ export async function runAskFlow(
 		presentSingleAsMulti:
 			options.presentSingleAsMulti ?? config.behaviour.presentSingleAsMulti,
 	};
+	if (ctx.mode !== "tui") {
+		return {
+			...toAskResult(createInitialState(params, flowOptions)),
+			cancelled: true,
+		};
+	}
 	return ctx.ui.custom<AskResult>((...args) =>
 		createAskFlowController(args, {
 			...params,
@@ -172,9 +178,15 @@ function createAskFlowController(
 	});
 
 	return {
+		get focused() {
+			return controller.editor.focused;
+		},
+		set focused(value: boolean) {
+			controller.editor.focused = value;
+		},
 		render: (width: number) => renderController(controller, width),
 		invalidate() {
-			// The editor manages its own async autocomplete redraws.
+			controller.editor.invalidate();
 		},
 		handleInput(data: string) {
 			handleControllerInput(controller, data);
@@ -536,7 +548,7 @@ function showSettingsModal(controller: AskFlowController) {
 		return;
 	}
 	controller.settingsOpen = true;
-	showAskSettings(controller.ctx.ui).finally(() => {
+	showAskSettings(controller.ctx).finally(() => {
 		controller.settingsOpen = false;
 		refresh(controller);
 	});

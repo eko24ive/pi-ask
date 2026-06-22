@@ -8,7 +8,7 @@ export function registerAskSettingsCommand(pi: ExtensionAPI) {
 	pi.registerCommand("ask-settings", {
 		description: "Open ask settings",
 		handler: async (_args: string, ctx: ExtensionCommandContext) => {
-			await showAskSettings(ctx.ui);
+			await showAskSettings(ctx);
 		},
 	});
 }

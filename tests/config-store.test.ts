@@ -5,7 +5,11 @@ import { dirname, join } from "node:path";
 import test from "node:test";
 import { DEFAULT_ASK_CONFIG } from "../src/config/defaults.ts";
 import type { AskConfig } from "../src/config/schema.ts";
-import { AskConfigStore } from "../src/config/store.ts";
+import {
+	AskConfigStore,
+	getAskConfigStore,
+	resetAskConfigStore,
+} from "../src/config/store.ts";
 
 const DEFAULT_KEYMAPS_NOTICE_PATTERN =
 	/Using default ask keymaps for this session/;
@@ -30,6 +34,38 @@ async function makeTempPath(name: string): Promise<string> {
 	);
 	return join(root, "eko24ive-pi-ask.json");
 }
+
+test("resetAskConfigStore reloads the global store from disk", async () => {
+	const root = await import("node:fs/promises").then(({ mkdtemp }) =>
+		mkdtemp(join(tmpdir(), "pi-ask-config-reset-"))
+	);
+	const path = join(root, "extensions", "eko24ive-pi-ask.json");
+	await mkdir(dirname(path), { recursive: true });
+	await writeFile(
+		path,
+		JSON.stringify({
+			...expectedConfigFile(),
+			behaviour: {
+				...DEFAULT_ASK_CONFIG.behaviour,
+				autoSubmitWhenAnsweredWithoutNotes: true,
+			},
+		})
+	);
+	process.env.PI_CODING_AGENT_DIR = root;
+	resetAskConfigStore();
+	getAskConfigStore().setConfig(DEFAULT_ASK_CONFIG);
+
+	resetAskConfigStore();
+	const result = await getAskConfigStore().ensureLoaded();
+
+	assert.equal(
+		result.config.behaviour.autoSubmitWhenAnsweredWithoutNotes,
+		true
+	);
+	delete process.env.PI_CODING_AGENT_DIR;
+	resetAskConfigStore();
+	await rm(root, { force: true, recursive: true });
+});
 
 test("config store writes defaults when file is missing", async () => {
 	const path = await makeTempPath("pi-ask-config-missing-");

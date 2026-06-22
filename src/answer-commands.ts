@@ -79,8 +79,8 @@ async function runAnswerCommand(
 	ctx: ExtensionCommandContext,
 	remoteAsk?: RemoteAskRuntime
 ): Promise<void> {
-	if (!ctx.hasUI) {
-		ctx.ui.notify("/answer requires interactive UI.", "error");
+	if (ctx.mode !== "tui") {
+		ctx.ui.notify("/answer requires interactive TUI mode.", "error");
 		return;
 	}
 
@@ -253,8 +253,8 @@ async function runReplayCommand(
 		source: AskPayloadSource;
 	}
 ): Promise<void> {
-	if (!ctx.hasUI) {
-		ctx.ui.notify("Ask replay requires interactive UI.", "error");
+	if (ctx.mode !== "tui") {
+		ctx.ui.notify("Ask replay requires interactive TUI mode.", "error");
 		return;
 	}
 	const lookup = findLatestPayloadInCurrentBranch(ctx, options.source);

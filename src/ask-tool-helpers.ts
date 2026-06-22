@@ -153,8 +153,8 @@ function formatNonInteractiveMessage(
 	state: ReturnType<typeof createInitialState>
 ): string {
 	const lines = [
-		"Needs user input: ask_user requires interactive UI.",
-		"Run same tool call in interactive session, or ask user these questions manually:",
+		"Needs user input: ask_user requires interactive TUI mode.",
+		"Run same tool call in interactive TUI mode, or ask user these questions manually:",
 	];
 
 	for (const [index, question] of state.questions.entries()) {

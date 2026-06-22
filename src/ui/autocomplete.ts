@@ -13,10 +13,13 @@ const FD_BINARY_NAMES =
  * themselves when reusing CombinedAutocompleteProvider for `@` file mentions.
  */
 export function createAskAutocompleteProvider(cwd: string) {
-	return new CombinedAutocompleteProvider(
-		[],
-		cwd,
-		findAutocompleteBinary(FD_BINARY_NAMES)
+	return Object.assign(
+		new CombinedAutocompleteProvider(
+			[],
+			cwd,
+			findAutocompleteBinary(FD_BINARY_NAMES)
+		),
+		{ triggerCharacters: ["@"] }
 	);
 }
 

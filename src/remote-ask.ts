@@ -95,6 +95,7 @@ export interface RemoteAskFlowHandle {
 }
 
 export interface RemoteAskRuntime {
+	disposeAll: () => void;
 	startFlow: (flow: RemoteAskFlowInput) => RemoteAskFlowHandle;
 }
 
@@ -102,12 +103,15 @@ type EventBus = ExtensionAPI["events"];
 
 export function createRemoteAskRuntime(events: EventBus): RemoteAskRuntime {
 	const activeFlows = new Map<string, ActiveRemoteAskFlow>();
-
-	events.on(PI_ASK_SUBMIT_EVENT, (data) => {
+	const unsubscribeSubmit = events.on(PI_ASK_SUBMIT_EVENT, (data) => {
 		handleSubmitEvent(events, activeFlows, data);
 	});
 
 	return {
+		disposeAll() {
+			activeFlows.clear();
+			unsubscribeSubmit();
+		},
 		startFlow(flow) {
 			return startRemoteAskFlow(events, activeFlows, flow);
 		},

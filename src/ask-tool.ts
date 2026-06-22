@@ -67,7 +67,7 @@ async function executeAskTool(
 		source: "tool",
 		sourceEntryId: toolCallId,
 	});
-	if (!ctx.hasUI) {
+	if (ctx.mode !== "tui") {
 		return nonInteractiveResponse(validation.state);
 	}
 	ctx.ui.setWorkingVisible(false);
