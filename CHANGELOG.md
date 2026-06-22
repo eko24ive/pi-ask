@@ -1,3 +1,15 @@
+# [1.1.0](https://github.com/eko24ive/pi-ask/compare/v1.0.2...v1.1.0) (2026-06-22)
+
+
+### Bug Fixes
+
+* refresh pi dependency compatibility ([d6db94a](https://github.com/eko24ive/pi-ask/commit/d6db94a39d37fda632d53147592af8f53aa50e4b))
+
+
+### Features
+
+* add remote ask event contract ([69e8bab](https://github.com/eko24ive/pi-ask/commit/69e8bab6efbc0394aecb9ce416eea27da755a5df)), closes [#6](https://github.com/eko24ive/pi-ask/issues/6)
+
 ## [1.0.2](https://github.com/eko24ive/pi-ask/compare/v1.0.1...v1.0.2) (2026-05-31)
 
 
