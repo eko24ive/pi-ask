@@ -16,9 +16,17 @@ Run the extension locally:
 pi -e ./src/index.ts
 ```
 
+## Contribution flow: chill mode
+
+This project is open source because I care about it, and it makes me happy when it helps people. I still cannot promise rapid reviews or a traditional pull-request turnaround.
+
+Please open an issue for ideas, bugs, and proposed changes. If you already have code, link to your fork or branch with the change set. I will review it carefully when I have time, then either incorporate the forked changes or implement the idea myself.
+
+I value contributions and will do my best to credit helpful work with a shout-out, a co-authored commit, or another fitting form of attribution.
+
 ## Validation
 
-Before opening a pull request, run:
+Before sharing a change set, please run:
 
 ```bash
 pnpm format
@@ -59,10 +67,11 @@ Please keep changes focused:
 - tests updated when behavior changes materially
 - docs updated when public behavior or usage changes materially
 
-## Pull requests
+## Sharing changes
 
-A good pull request should include:
+A useful issue with a linked fork should include:
 
 - a clear summary of the change
+- why the change matters
 - tests for behavior changes
 - docs updates when user-facing behavior changes
