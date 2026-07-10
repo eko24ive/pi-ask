@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
 	collectExtractionBusinessIssues,
+	parseExtractionCandidate,
 	repairExtractionParams,
 	selectExtractionModel,
 } from "../src/answer-extraction.ts";
@@ -123,4 +124,69 @@ test("selectExtractionModel validates fallback model auth", async () => {
 	assert.deepEqual(result, {
 		error: "No auth for fallback chat model: fallback/c.",
 	});
+});
+
+const NO_TEXT_CONTENT_ERROR = /no text content/i;
+const QUESTIONS_MUST_BE_ARRAY_ERROR = /questions must be an array/;
+
+test("parseExtractionCandidate accepts raw JSON", () => {
+	const result = parseExtractionCandidate('{"questions":[]}');
+	assert.equal(result.ok, true);
+	if (result.ok) {
+		assert.equal(result.params.questions.length, 0);
+	}
+});
+
+test("parseExtractionCandidate strips ```json code fences", () => {
+	const result = parseExtractionCandidate('```json\n{"questions":[]}\n```');
+	assert.equal(result.ok, true);
+	if (result.ok) {
+		assert.equal(result.params.questions.length, 0);
+	}
+});
+
+test("parseExtractionCandidate strips bare ``` code fences", () => {
+	const result = parseExtractionCandidate('```\n{"questions":[]}\n```');
+	assert.equal(result.ok, true);
+});
+
+test("parseExtractionCandidate extracts JSON from surrounding prose", () => {
+	const input =
+		'Here is the JSON:\n{"questions":[{"id":"x","prompt":"y","options":[{"value":"a","label":"A"}]}]}\nDone.';
+	const result = parseExtractionCandidate(input);
+	assert.equal(result.ok, true);
+	if (result.ok) {
+		assert.equal(result.params.questions.length, 1);
+	}
+});
+
+test("parseExtractionCandidate handles braces inside string values", () => {
+	const input =
+		'{"questions":[{"id":"x","prompt":"a \\"quoted { brace\\" }","options":[{"value":"a","label":"A"}]}]}';
+	const result = parseExtractionCandidate(input);
+	assert.equal(result.ok, true);
+});
+
+test("parseExtractionCandidate reports empty responses as a distinct error", () => {
+	const result = parseExtractionCandidate("");
+	assert.equal(result.ok, false);
+	if (!result.ok) {
+		assert.match(result.error, NO_TEXT_CONTENT_ERROR);
+	}
+});
+
+test("parseExtractionCandidate reports whitespace-only responses as empty", () => {
+	const result = parseExtractionCandidate("   \n\t  \n");
+	assert.equal(result.ok, false);
+	if (!result.ok) {
+		assert.match(result.error, NO_TEXT_CONTENT_ERROR);
+	}
+});
+
+test("parseExtractionCandidate rejects non-object roots", () => {
+	const result = parseExtractionCandidate("[1,2,3]");
+	assert.equal(result.ok, false);
+	if (!result.ok) {
+		assert.match(result.error, QUESTIONS_MUST_BE_ARRAY_ERROR);
+	}
 });

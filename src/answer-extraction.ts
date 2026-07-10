@@ -203,13 +203,24 @@ async function runExtractionAttempt(options: {
 
 const MAX_EXTRACTED_OPTIONS_PER_QUESTION = 4;
 
-function parseExtractionCandidate(
+const CODE_FENCE_PATTERN = /^```(?:[a-zA-Z0-9_-]+)?\s*\n([\s\S]*?)\n```\s*$/;
+
+export function parseExtractionCandidate(
 	responseText: string
 ):
 	| { ok: true; params: AskParams; issues: string[] }
 	| { ok: false; error: string } {
+	const trimmed = responseText.trim();
+	if (trimmed === "") {
+		return {
+			ok: false,
+			error:
+				"Model returned no text content (possibly reasoning-only output). Configure answer.extractionModels with a model that emits text.",
+		};
+	}
+	const candidate = extractJsonCandidate(trimmed);
 	try {
-		const parsed = JSON.parse(responseText.trim()) as unknown;
+		const parsed = JSON.parse(candidate) as unknown;
 		if (!isAskParamsLike(parsed)) {
 			return { ok: false, error: "root.questions must be an array" };
 		}
@@ -224,6 +235,77 @@ function parseExtractionCandidate(
 			error: error instanceof Error ? error.message : String(error),
 		};
 	}
+}
+
+/**
+ * Normalize an LLM response into a JSON candidate.
+ *
+ * Chat-tuned models commonly wrap structured output in Markdown code fences
+ * or surrounding prose even when the prompt forbids it. This helper hides
+ * those quirks behind the parser interface: it strips a leading/trailing
+ * code fence, and as a last resort extracts the largest balanced JSON object.
+ * Downstream JSON.parse remains the source of truth for validity.
+ */
+function extractJsonCandidate(text: string): string {
+	const unfenced = stripCodeFences(text);
+	if (unfenced.startsWith("{") || unfenced.startsWith("[")) {
+		return unfenced;
+	}
+	return extractBalancedJsonObject(unfenced) ?? unfenced;
+}
+
+function stripCodeFences(text: string): string {
+	const match = text.match(CODE_FENCE_PATTERN);
+	return match ? match[1].trim() : text;
+}
+
+function extractBalancedJsonObject(text: string): string | undefined {
+	const start = text.indexOf("{");
+	if (start === -1) {
+		return;
+	}
+	const end = findMatchingBrace(text, start);
+	return end === -1 ? undefined : text.slice(start, end + 1);
+}
+
+function findMatchingBrace(text: string, start: number): number {
+	let depth = 0;
+	let i = start;
+	while (i < text.length) {
+		const c = text[i];
+		if (c === '"') {
+			i = skipQuotedString(text, i + 1);
+			continue;
+		}
+		if (c === "{") {
+			depth++;
+		} else if (c === "}" && --depth === 0) {
+			return i;
+		}
+		i++;
+	}
+	return -1;
+}
+
+/**
+ * Return the index just past the closing quote of a JSON string that starts
+ * at `fromIndex`. Handles backslash escapes. Returns `text.length` if the
+ * string is unterminated.
+ */
+function skipQuotedString(text: string, fromIndex: number): number {
+	let i = fromIndex;
+	while (i < text.length) {
+		const c = text[i];
+		if (c === "\\") {
+			i += 2;
+			continue;
+		}
+		if (c === '"') {
+			return i + 1;
+		}
+		i++;
+	}
+	return text.length;
 }
 
 function isAskParamsLike(value: unknown): value is AskParams {
