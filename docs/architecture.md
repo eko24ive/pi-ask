@@ -16,7 +16,7 @@ The codebase is split so the implementation reads through file boundaries and na
 - `src/index.ts` — extension entrypoint
 - `src/ask-tool.ts` — tool registration, non-interactive fallback, transcript rendering, ask payload capture
 - `src/answer-commands.ts` — `/answer`, `/answer:again`, and `/ask:replay` command wiring
-- `src/answer-extraction.ts` — configured extraction model selection and raw-JSON extraction retries
+- `src/answer-extraction.ts` — configured extraction model selection, synthetic `ask_user` tool-call extraction, and tolerant text fallback
 - `src/ask-payload-store.ts` — branch-aware persisted ask payload lookup
 - `src/notifications.ts` — best-effort ask notification payload rendering and channel execution
 - `src/remote-ask.ts` — package-prefixed local event contract, active-flow registry, and explicit remote submission validation

@@ -72,3 +72,36 @@ export const AskParamsSchema = Type.Object({
 		description: "Questions to ask in the interactive clarification flow",
 	}),
 });
+
+const AnswerExtractionOptionSchema = Type.Object({
+	value: Type.String({ description: "Machine-readable option value" }),
+	label: Type.String({ description: "Short visible option label" }),
+	description: AskOptionSchema.properties.description,
+	preview: AskOptionSchema.properties.preview,
+	freeform: Type.Optional(
+		Type.Boolean({
+			description:
+				"Use only when the assistant offered no concrete choices and the user should type an answer",
+		})
+	),
+});
+
+const AnswerExtractionQuestionSchema = Type.Object({
+	id: Type.String({ description: "Stable snake_case question identifier" }),
+	label: AskQuestionSchema.properties.label,
+	prompt: Type.String({ description: "Direct question shown to the user" }),
+	type: AskQuestionSchema.properties.type,
+	required: AskQuestionSchema.properties.required,
+	options: Type.Array(AnswerExtractionOptionSchema, {
+		description:
+			"Choices explicitly offered by the assistant, or one freeform option when the user should type an answer",
+		minItems: 1,
+	}),
+});
+
+export const AnswerExtractionParamsSchema = Type.Object({
+	...AskParamsSchema.properties,
+	questions: Type.Array(AnswerExtractionQuestionSchema, {
+		description: "Questions extracted from the assistant message",
+	}),
+});

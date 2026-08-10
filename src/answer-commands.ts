@@ -25,6 +25,7 @@ import { runAskFlow } from "./ui/controller.ts";
 
 interface AssistantTextSource {
 	entryId: string;
+	previousUserText?: string;
 	text: string;
 }
 
@@ -192,11 +193,12 @@ function runExtractionUi(
 		loader.onAbort = () => doneOnce({ cancelled: true });
 		extractAskParams({
 			assistantText: assistant.text,
+			previousUserText: assistant.previousUserText,
 			auth: selected.auth,
 			model: selected.model,
 			onRetry: (attempt, maxRetries) => {
 				ctx.ui.notify(
-					`Retrying extraction JSON repair (${attempt}/${maxRetries})...`,
+					`Retrying question extraction (${attempt}/${maxRetries})...`,
 					"info"
 				);
 			},
@@ -346,16 +348,40 @@ function findLatestAssistantText(
 				error: `Latest assistant message is incomplete (${message.stopReason}); wait for it to finish, then run /answer again.`,
 			};
 		}
-		const text = message.content
-			.filter(
-				(part): part is { text: string; type: "text" } => part.type === "text"
-			)
-			.map((part) => part.text)
-			.join("\n")
-			.trim();
+		const text = extractTextContent(message.content);
 		if (text) {
-			return { entryId: entry.id, text };
+			return {
+				entryId: entry.id,
+				previousUserText: findPreviousUserText(branch, index),
+				text,
+			};
 		}
 	}
 	return { error: "No assistant message found to extract questions from." };
+}
+
+function findPreviousUserText(
+	branch: ReturnType<ExtensionContext["sessionManager"]["getBranch"]>,
+	beforeIndex: number
+): string | undefined {
+	for (let index = beforeIndex - 1; index >= 0; index--) {
+		const entry = branch[index];
+		if (entry.type !== "message" || entry.message.role !== "user") {
+			continue;
+		}
+		return extractTextContent(entry.message.content) || undefined;
+	}
+	return;
+}
+
+function extractTextContent(
+	content: string | Array<{ text?: string; type: string }>
+): string {
+	if (typeof content === "string") {
+		return content.trim();
+	}
+	return content
+		.flatMap((part) => (part.type === "text" && part.text ? [part.text] : []))
+		.join("\n")
+		.trim();
 }

@@ -112,7 +112,7 @@ These settings affect only the `/answer` command. Normal `ask_user` tool calls d
 
 - type: integer from `0` to `3`
 - default: `1`
-- effect: number of retry attempts after raw JSON parsing fails; retries include the parse error and previous response as feedback
+- effect: number of retry attempts after the model omits `ask_user`, returns invalid tool arguments, or produces an invalid JSON text fallback; retries include the previous error and response as feedback
 
 ## Behaviour
 
