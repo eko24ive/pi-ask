@@ -12,7 +12,7 @@ export function createInitialState(
 	options: CreateInitialStateOptions = {}
 ) {
 	return createBaseState({
-		title: params.title,
+		title: params.title?.trim() || undefined,
 		questions: normalizeQuestions(params, options),
 	});
 }

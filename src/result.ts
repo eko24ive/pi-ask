@@ -8,7 +8,7 @@ import type { AskResult } from "./types.ts";
 
 export function renderResultText(result: AskResult): string {
 	if (result.error) {
-		return "Invalid input";
+		return "Invalid tool payload";
 	}
 	if (result.cancelled) {
 		return CANCELLED_RESULT_TEXT;

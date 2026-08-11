@@ -38,6 +38,51 @@ export function collectValidationIssues(
 	return collector.issues;
 }
 
+export function prepareAskParams(input: unknown): unknown {
+	if (!(isRecord(input) && Array.isArray(input.questions))) {
+		return input;
+	}
+	return {
+		...input,
+		questions: input.questions.map((question) => {
+			if (!(isRecord(question) && Array.isArray(question.options))) {
+				return question;
+			}
+			return {
+				...question,
+				options: question.options.map(prepareOption),
+			};
+		}),
+	};
+}
+
+function prepareOption(input: unknown): unknown {
+	if (!isRecord(input)) {
+		return input;
+	}
+	if (
+		input.label !== undefined &&
+		!(typeof input.label === "string" && !input.label.trim())
+	) {
+		return input;
+	}
+	if (typeof input.value !== "string") {
+		return input;
+	}
+	const words = input.value.replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
+	if (!words) {
+		return input;
+	}
+	return {
+		...input,
+		label: words.charAt(0).toUpperCase() + words.slice(1),
+	};
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
 function normalizeQuestion(
 	question: AskQuestionInput,
 	index: number,
@@ -65,8 +110,8 @@ function normalizeOption(option: AskOption): AskOption {
 	return {
 		value: option.value.trim(),
 		label: option.label.trim(),
-		description: option.description?.trim(),
-		preview: option.preview?.trim(),
+		description: option.description?.trim() || undefined,
+		preview: option.preview?.trim() || undefined,
 		...(option.freeform ? { freeform: true } : {}),
 	};
 }
@@ -117,12 +162,6 @@ function validateQuestion(
 		collector,
 		`${questionPath}.id`,
 		`Question ${questionNumber}: duplicate question id "${questionId}"`
-	);
-	assertOptionalText(
-		question.label,
-		collector,
-		`${questionPath}.label`,
-		`Question ${questionNumber}: label must not be empty`
 	);
 	assertRequired(
 		question.prompt?.trim(),
@@ -218,18 +257,6 @@ function validateOption(
 		`${optionPath}.label`,
 		`${prefix}: label is required`
 	);
-	assertOptionalText(
-		option.description,
-		collector,
-		`${optionPath}.description`,
-		`${prefix}: description must not be empty`
-	);
-	assertOptionalText(
-		option.preview,
-		collector,
-		`${optionPath}.preview`,
-		`${prefix}: preview must not be empty`
-	);
 	if (questionType === "preview") {
 		assertRequired(
 			optionPreview,
@@ -283,17 +310,6 @@ function assertRequired(
 	message: string
 ) {
 	if (!value) {
-		collector.add(path, message);
-	}
-}
-
-function assertOptionalText(
-	value: string | undefined,
-	collector: IssueCollector,
-	path: string,
-	message: string
-) {
-	if (value !== undefined && !value.trim()) {
 		collector.add(path, message);
 	}
 }

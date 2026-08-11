@@ -1,17 +1,13 @@
 import { Type } from "typebox";
 
 export const AskOptionSchema = Type.Object({
-	value: Type.Optional(
-		Type.String({
-			description:
-				"Required machine-readable value returned for this option in the result",
-		})
-	),
-	label: Type.Optional(
-		Type.String({
-			description: "Required short visible option label shown in the list",
-		})
-	),
+	value: Type.String({
+		description:
+			"Required machine-readable value returned for this option in the result",
+	}),
+	label: Type.String({
+		description: "Required short visible option label shown in the list",
+	}),
 	description: Type.Optional(
 		Type.String({
 			description: "Optional one-line explanation to help the user choose",
@@ -26,23 +22,19 @@ export const AskOptionSchema = Type.Object({
 });
 
 export const AskQuestionSchema = Type.Object({
-	id: Type.Optional(
-		Type.String({
-			description:
-				"Required stable question identifier used as the key in returned answers",
-		})
-	),
+	id: Type.String({
+		description:
+			"Required stable question identifier used as the key in returned answers",
+	}),
 	label: Type.Optional(
 		Type.String({
 			description: "Short tab label, e.g. Goal, Audience, Tone, Scope",
 		})
 	),
-	prompt: Type.Optional(
-		Type.String({
-			description:
-				"Required direct question shown to the user; ask about one decision at a time",
-		})
-	),
+	prompt: Type.String({
+		description:
+			"Required direct question shown to the user; ask about one decision at a time",
+	}),
 	type: Type.Optional(
 		Type.String({
 			description:

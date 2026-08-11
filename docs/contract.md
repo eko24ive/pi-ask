@@ -32,8 +32,9 @@ This document defines the stable external behavior. It does not explain internal
 - every question must have at least one option
 - question ids must be unique within one tool call
 - option `value`s must be unique within a question
-- optional `label`, `description`, and `preview` fields must not be blank when provided
-- `label` falls back to `Q1`, `Q2`, ...
+- blank optional `title`, question `label`, option `description`, and option `preview` fields are treated as omitted
+- question `label` falls back to `Q1`, `Q2`, ...
+- option `label` is required in the public schema; before schema validation, a missing or blank string label is derived from a non-empty `value` by replacing hyphens and underscores with spaces and capitalizing the first character
 - `type` defaults to `single`
 - `required` defaults to `false`
 - `required` is metadata only; it never blocks submission
@@ -161,7 +162,8 @@ This document defines the stable external behavior. It does not explain internal
 ## Output rules
 
 - `cancelled: true` means the user dismissed the flow, UI was unavailable, or the payload was invalid before UI opened
-- invalid payloads return `error.kind === "invalid_input"` with structured `issues` and a transcript-friendly `Invalid ask_user payload:` message
+- semantically invalid payloads that reach tool execution return `error.kind === "invalid_input"` with structured `issues` and a transcript-friendly `Invalid ask_user payload:` message; their rendered status is `Invalid tool payload`
+- payloads missing schema-required fields fail Pi's schema validation before tool execution and use Pi's standard tool-error result without structured `details`
 - `mode: "submit"` is normal completion; `mode: "elaborate"` means the user asked the agent to continue with follow-up clarification based on notes
 - unanswered questions are omitted from `answers`
 - in `mode: "elaborate"`, `answers` contains only committed answers; note-only entries move to `elaboration.items`
@@ -259,7 +261,7 @@ Dirty dismiss:
 
 The rich ask flow uses `ctx.ui.custom()` and opens only in TUI mode. In print, JSON, RPC, or any other non-TUI mode, the tool returns a `Needs user input: ask_user requires interactive TUI mode.` message in `content` and a cancelled result in `details` instead of opening custom UI.
 
-Validation is handled inside the tool so malformed calls produce the same structured error shape as other invalid payloads instead of relying on pre-execution schema failures.
+The public tool schema requires question `id` and `prompt` plus option `value` and `label`, so missing required fields fail before execution. The tool still validates trimmed text, uniqueness, question types, option counts, and preview requirements during execution and returns structured issues for those failures. Result rendering falls back to Pi's raw tool-error text when schema validation prevents execution.
 
 The ask flow subscribes to runtime settings updates while open. In practice, this means changing `Auto-submit when answered without notes`, `Confirm dismiss when dirty`, `Double-press review shortcuts`, `Notifications`, `Show footer hints`, resetting config to defaults, or reloading config-backed keymaps can affect the in-progress ask flow immediately instead of only future asks when the change is saved or otherwise applied in memory. Load-time migrations and invalid config handling do not rewrite, rename, or back up the config file; invalid files load defaults for the session and show a notice. `Present single-select as multi-select` is applied when an ask flow is created and does not rewrite question semantics for an already-open flow; use `main.changeQuestionType` for live per-question changes.
 

@@ -254,6 +254,36 @@ test("normalize trims ids, prompts, and option text", () => {
 	});
 });
 
+test("normalize treats blank optional presentation text as absent", () => {
+	const state = createInitialState({
+		title: "   ",
+		questions: [
+			{
+				id: "scope",
+				label: "  ",
+				prompt: "Pick scope",
+				options: [
+					{
+						value: "small",
+						label: "Small",
+						description: " ",
+						preview: "\t",
+					},
+				],
+			},
+		],
+	});
+
+	assert.equal(state.title, undefined);
+	assert.equal(state.questions[0].label, "Q1");
+	assert.deepEqual(state.questions[0].options[0], {
+		value: "small",
+		label: "Small",
+		description: undefined,
+		preview: undefined,
+	});
+});
+
 test("single-select number shortcut stores answer and advances to next tab", () => {
 	let state = createInitialState(sampleParams());
 	state = applyNumberShortcut(state, 2);

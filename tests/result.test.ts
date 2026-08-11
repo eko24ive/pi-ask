@@ -568,7 +568,7 @@ test("elaborate continuation preserves unrelated committed answers", () => {
 	});
 });
 
-test("invalid input result renders as invalid input", () => {
+test("invalid tool payload result is attributed to the tool call", () => {
 	const result = {
 		title: "Interview",
 		cancelled: true,
@@ -581,7 +581,7 @@ test("invalid input result renders as invalid input", () => {
 		},
 	};
 
-	assert.equal(renderResultText(result), "Invalid input");
+	assert.equal(renderResultText(result), "Invalid tool payload");
 });
 
 test("cancelled result renders as cancelled", () => {

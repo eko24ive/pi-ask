@@ -13,13 +13,14 @@ import type {
 } from "./types.ts";
 
 export const ASK_TOOL_DESCRIPTION =
-	"Interactive clarification tool for cases where the next step depends on user preferences, missing requirements, or choosing between multiple valid directions. Ask a short structured interview, collect normalized answers, and continue using those answers explicitly instead of guessing. Supports single-select, multi-select, and preview-pane questions. Always include a machine-readable `value` for every option. Use `preview` only when every option includes `preview` text; descriptions alone are not enough.";
+	"Interactive clarification tool for cases where the next step depends on user preferences, missing requirements, or choosing between multiple valid directions. Ask a short structured interview, collect normalized answers, and continue using those answers explicitly instead of guessing. Supports single-select, multi-select, and preview-pane questions. Always include a stable `id` and non-empty `prompt` for every question, plus a machine-readable `value` and visible `label` for every option. Use `preview` only when every option includes `preview` text; descriptions alone are not enough.";
 
 export const ASK_TOOL_PROMPT_GUIDELINES = [
 	"Use `ask_user` before making preference-sensitive decisions about scope, tone, UX, naming, architecture, docs, or implementation direction.",
 	"When multiple valid directions exist, call `ask_user` with 1-3 concise questions instead of committing to one path on your own.",
 	"When calling `ask_user`, prefer one focused decision per question. Use short labels. Provide clear, distinct options. Do not add filler options.",
-	"When calling `ask_user`, always include a non-empty machine-readable `value` for every option.",
+	"When calling `ask_user`, always include a stable `id` and non-empty `prompt` for every question.",
+	"When calling `ask_user`, always include a non-empty machine-readable `value` and visible `label` for every option.",
 	"When calling `ask_user`, choose question `type` from the question semantics: `single` means one answer is expected, `multi` means multiple answers could reasonably be selected, and `preview` means options need preview-pane detail.",
 	'When calling `ask_user`, use `type: "preview"` only when every option includes non-empty `preview` text. Option descriptions do not satisfy this requirement.',
 	"After an `ask_user` elaboration or follow-up note, prefer another structured `ask_user` follow-up if a choice is still needed instead of switching to plain-text multiple choice in chat.",
@@ -88,7 +89,7 @@ export function renderAskToolCall(args: unknown, theme: ToolTheme) {
 		? params.questions
 				.map(
 					(question: AskQuestionInput, index) =>
-						question.label || `Q${index + 1}`
+						question.label?.trim() || `Q${index + 1}`
 				)
 				.join(", ")
 		: "";
@@ -112,17 +113,16 @@ export function renderAskToolResult(
 	theme: ToolTheme
 ) {
 	const details = result.details;
-	if (!details) {
+	if (!(details && Array.isArray(details.questions))) {
 		const text = result.content[0];
 		return new Text(text?.type === "text" ? (text.text ?? "") : "", 0, 0);
 	}
-	if (details.error) {
-		return new Text(theme.fg("warning", "Invalid input"), 0, 0);
-	}
-	if (details.cancelled) {
-		return new Text(theme.fg("warning", "Cancelled"), 0, 0);
-	}
-	return new Text(renderResultText(details), 0, 0);
+	const text = renderResultText(details);
+	return new Text(
+		details.error || details.cancelled ? theme.fg("warning", text) : text,
+		0,
+		0
+	);
 }
 
 function errorResultDetails(
