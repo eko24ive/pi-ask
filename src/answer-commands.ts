@@ -194,7 +194,8 @@ function runExtractionUi(
 		extractAskParams({
 			assistantText: assistant.text,
 			previousUserText: assistant.previousUserText,
-			auth: selected.auth,
+			complete: (model, context, options) =>
+				ctx.modelRegistry.complete(model, context, options),
 			model: selected.model,
 			onRetry: (attempt, maxRetries) => {
 				ctx.ui.notify(

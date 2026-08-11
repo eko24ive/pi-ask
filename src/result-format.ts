@@ -18,9 +18,9 @@ export function formatResultLines(
 		}
 
 		const answerLine = formatAnswerLine(question.label, answer, options.mode);
-		if (answerLine) {
-			lines.push(answerLine);
-		}
+		lines.push(
+			answerLine ?? formatUnansweredLine(question.label, options.mode)
+		);
 
 		if (hasPresentedTypeOverride(question.type, question.presentedType)) {
 			hasPresentationOverride = true;

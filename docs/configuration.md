@@ -99,8 +99,13 @@ These settings affect only the `/answer` command. Normal `ask_user` tool calls d
 
 - type: array of `{ "provider": string, "id": string }`
 - default: lightweight OpenAI Codex, GitHub Copilot, and Anthropic models
-- effect: `/answer` tries configured models in order and uses the first model with available auth
-- fallback: if no configured model is usable, `/answer` tries the current chat model after validating its auth
+- effect: `/answer` tries configured models in order and uses the first model with available auth that is inside the current session model scope; an empty scope allows all available models
+- fallback: if no configured model is usable, `/answer` tries the current chat model after validating its auth and scope
+- auth check: use Pi's auth preflight before changing this list:
+
+```bash
+pi auth check --provider openai-codex --model gpt-5.4-mini
+```
 
 ### `answer.extractionTimeoutMs`
 

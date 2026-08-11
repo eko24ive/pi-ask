@@ -1,9 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { validateToolArguments } from "@earendil-works/pi-ai/base";
 import { Value } from "typebox/value";
 import { registerAskTool } from "../src/ask-tool.ts";
-import { AskOptionSchema } from "../src/schema.ts";
+import { AskOptionSchema, AskParamsSchema } from "../src/schema.ts";
 import type { AskParams } from "../src/types.ts";
 
 const NON_INTERACTIVE_MESSAGE_RE =
@@ -17,7 +16,6 @@ const PREVIEW_RULE_RE =
 	/questions\[0\]\.options\[0\]\.preview: Question 1, option 1: preview questions require preview text for every option; add preview text or use type "single" instead/;
 const MISSING_OPTION_VALUE_RE =
 	/questions\[0\]\.options\[0\]\.value: Question 1, option 1: value is required/;
-const MISSING_OPTION_LABEL_RE = /label/;
 const EMPTY_QUESTIONS_RE = /questions: At least one question is required/;
 const INVALID_TYPE_RE =
 	/questions\[0\]\.type: Question 1: invalid type "grid"; expected "single", "multi", or "preview"/;
@@ -93,6 +91,22 @@ test("ask option schema and tool guidance support grounded recommendations", () 
 				guideline.includes("grounded preferences") &&
 				guideline.includes("description")
 		)
+	);
+});
+
+test("ask params schema constrains question types", () => {
+	assert.equal(
+		Value.Check(AskParamsSchema, {
+			questions: [
+				{
+					id: "layout",
+					prompt: "Choose a layout",
+					type: "grid",
+					options: [{ value: "compact", label: "Compact" }],
+				},
+			],
+		}),
+		false
 	);
 });
 
@@ -357,29 +371,25 @@ test("ask tool reports preview validation with structured issues", async () => {
 
 test("ask tool accepts blank optional presentation fields", async () => {
 	const { tool } = registerMockTool();
-	const params = validateToolArguments(tool as never, {
-		type: "toolCall",
-		id: "call-blank-optionals",
-		name: "ask_user",
-		arguments: {
-			title: "   ",
-			questions: [
-				{
-					id: "scope",
-					label: "  ",
-					prompt: "Pick scope",
-					options: [
-						{
-							value: "small",
-							label: "Small",
-							description: " ",
-							preview: "\t",
-						},
-					],
-				},
-			],
-		},
-	}) as AskParams;
+	const params: AskParams = {
+		title: "   ",
+		questions: [
+			{
+				id: "scope",
+				label: "  ",
+				prompt: "Pick scope",
+				options: [
+					{
+						value: "small",
+						label: "Small",
+						description: " ",
+						preview: "\t",
+					},
+				],
+			},
+		],
+	};
+	assert.equal(Value.Check(AskParamsSchema, params), true);
 	const result = await tool.execute(
 		"call-blank-optionals",
 		params,
@@ -446,16 +456,7 @@ test("public schema requires semantic identifiers and labels", () => {
 			},
 		],
 	};
-	assert.throws(
-		() =>
-			validateToolArguments(tool as never, {
-				type: "toolCall",
-				id: "call-missing-label",
-				name: "ask_user",
-				arguments: missingLabel,
-			}),
-		MISSING_OPTION_LABEL_RE
-	);
+	assert.equal(Value.Check(AskParamsSchema, missingLabel), false);
 });
 
 test("ask tool transcript renderers summarize call and cancelled result", () => {

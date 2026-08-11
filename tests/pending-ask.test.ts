@@ -82,7 +82,7 @@ function toolResult(toolCallId: string) {
 
 function storedPayload(
 	sourceEntryId: string,
-	storedParams: AskParams = params,
+	storedParams: unknown = params,
 	version = 1
 ) {
 	return {
@@ -185,10 +185,20 @@ test("pending ask scan validates recorded arguments as payload fallback", () => 
 		),
 		{ params, toolCallId: "call-2" }
 	);
+	assert.deepEqual(
+		findPendingAskToolCall(
+			scannerContext([askToolCall("call-3"), storedPayload("call-3", {})])
+		),
+		{ params, toolCallId: "call-3" }
+	);
 	assert.equal(
 		findPendingAskToolCall(
-			scannerContext([askToolCall("call-3", { questions: [] })])
+			scannerContext([askToolCall("call-4", { questions: [] })])
 		),
+		undefined
+	);
+	assert.equal(
+		findPendingAskToolCall(scannerContext([askToolCall("call-5", {})])),
 		undefined
 	);
 });

@@ -85,6 +85,7 @@ test("branch payload lookup ignores invalid stored payloads", () => {
 	const result = findLatestPayloadInCurrentBranch(
 		ctx([
 			custom({ version: 1, source: "tool", params: { questions: [] } }),
+			custom({ version: 1, source: "tool", params: {} }),
 			custom({ version: 1, source: "answer-extraction", params }),
 		]),
 		"tool"

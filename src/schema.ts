@@ -1,3 +1,4 @@
+import { StringEnum } from "@earendil-works/pi-ai";
 import { Type } from "typebox";
 
 export const AskOptionSchema = Type.Object({
@@ -42,7 +43,7 @@ export const AskQuestionSchema = Type.Object({
 			"Required direct question shown to the user; ask about one decision at a time",
 	}),
 	type: Type.Optional(
-		Type.String({
+		StringEnum(["single", "multi", "preview"] as const, {
 			description:
 				"Question type: `single` means one answer is expected, `multi` means multiple answers could reasonably be selected, and `preview` means options need preview-pane detail. Use `preview` only when every option includes `preview` text; descriptions alone are not enough.",
 		})

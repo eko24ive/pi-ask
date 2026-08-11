@@ -343,7 +343,14 @@ test("question-note-only results still render note content", () => {
 		},
 	};
 
-	assert.equal(renderResultText(result), "  note: Prefer incremental changes");
+	assert.equal(
+		renderResultText(result),
+		"? Scope: (no answer)\n  note: Prefer incremental changes"
+	);
+	assert.equal(
+		summarizeResult(result),
+		"Scope: (no answer)\nScope note: Prefer incremental changes"
+	);
 });
 
 test("elaborate results include unselected notes in summary and render output", () => {

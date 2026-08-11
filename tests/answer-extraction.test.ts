@@ -19,6 +19,7 @@ test("selectExtractionModel uses first configured model with auth", async () => 
 	const result = await selectExtractionModel(
 		{
 			model: model("fallback", "c"),
+			scopedModels: [],
 			modelRegistry: {
 				find(provider: string, _id: string) {
 					if (provider === "missing") {
@@ -44,8 +45,52 @@ test("selectExtractionModel uses first configured model with auth", async () => 
 
 	assert.deepEqual(result, {
 		model: second,
-		auth: { ok: true, apiKey: "key" },
 		usedFallback: false,
+	});
+});
+
+test("selectExtractionModel respects the current session model scope", async () => {
+	const configured = model("configured", "a");
+	const fallback = model("fallback", "b");
+	const result = await selectExtractionModel(
+		{
+			model: fallback,
+			scopedModels: [{ model: fallback }],
+			modelRegistry: {
+				find() {
+					return configured;
+				},
+				getApiKeyAndHeaders() {
+					return Promise.resolve({ ok: true, apiKey: "key" });
+				},
+			},
+		} as never,
+		[{ provider: "configured", id: "a" }]
+	);
+
+	assert.deepEqual(result, {
+		model: fallback,
+		usedFallback: true,
+	});
+});
+
+test("selectExtractionModel rejects a fallback outside the current session scope", async () => {
+	const fallback = model("fallback", "a");
+	const result = await selectExtractionModel(
+		{
+			model: fallback,
+			scopedModels: [{ model: model("allowed", "b") }],
+			modelRegistry: {
+				find() {
+					return;
+				},
+			},
+		} as never,
+		[]
+	);
+
+	assert.deepEqual(result, {
+		error: "No available extraction model in the current session model scope.",
 	});
 });
 
@@ -111,6 +156,7 @@ test("selectExtractionModel validates fallback model auth", async () => {
 	const result = await selectExtractionModel(
 		{
 			model: fallback,
+			scopedModels: [],
 			modelRegistry: {
 				find() {
 					return;

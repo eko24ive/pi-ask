@@ -4,8 +4,10 @@ import type {
 	ExtensionContext,
 	SessionEntry,
 } from "@earendil-works/pi-coding-agent";
+import { Value } from "typebox/value";
 import { findPayloadForSourceEntry } from "./ask-payload-store.ts";
 import { validateParams } from "./ask-tool-helpers.ts";
+import { AskParamsSchema } from "./schema.ts";
 import type { AskParams } from "./types.ts";
 
 export const ASK_PENDING_DISMISSED_ENTRY_TYPE = "ask:pending-dismissed";
@@ -15,8 +17,6 @@ export interface PendingAskToolCall {
 	params: AskParams;
 	toolCallId: string;
 }
-
-type AskToolCall = ToolCall;
 
 export function appendPendingAskDismissal(
 	pi: Pick<ExtensionAPI, "appendEntry">,
@@ -68,7 +68,7 @@ function collectResolvedToolCallIds(
 function findUnresolvedAskToolCall(
 	entry: SessionEntry,
 	resolvedToolCallIds: ReadonlySet<string>
-): AskToolCall | undefined {
+): ToolCall | undefined {
 	if (
 		entry.type !== "message" ||
 		entry.message.role !== "assistant" ||
@@ -96,15 +96,18 @@ function findUnresolvedAskToolCall(
 
 function resolvePendingAskParams(
 	ctx: Pick<ExtensionContext, "sessionManager">,
-	toolCall: AskToolCall
+	toolCall: ToolCall
 ): AskParams | undefined {
 	const persistedPayload = findPayloadForSourceEntry(ctx, toolCall.id, "tool");
 	if (persistedPayload) {
 		return persistedPayload.params;
 	}
 
-	const argumentsFallback = toolCall.arguments as AskParams | undefined;
-	if (argumentsFallback && validateParams(argumentsFallback).ok) {
+	const argumentsFallback = toolCall.arguments;
+	if (
+		Value.Check(AskParamsSchema, argumentsFallback) &&
+		validateParams(argumentsFallback).ok
+	) {
 		return argumentsFallback;
 	}
 	return;

@@ -2,8 +2,8 @@ import {
 	type Api,
 	type AssistantMessage,
 	type Context,
-	complete,
 	type Model,
+	modelsAreEqual,
 	type Tool,
 	type UserMessage,
 } from "@earendil-works/pi-ai";
@@ -51,23 +51,22 @@ interface ExtractionPromptOptions {
 }
 
 interface SelectedExtractionModel {
-	auth: { apiKey?: string; headers?: Record<string, string> };
 	model: Model<Api>;
 	usedFallback: boolean;
 }
 
 export async function selectExtractionModel(
-	ctx: Pick<ExtensionContext, "model" | "modelRegistry">,
+	ctx: Pick<ExtensionContext, "model" | "modelRegistry" | "scopedModels">,
 	preferences: AskConfig["answer"]["extractionModels"]
 ): Promise<SelectedExtractionModel | { error: string }> {
 	for (const preference of preferences) {
 		const model = ctx.modelRegistry.find(preference.provider, preference.id);
-		if (!model) {
+		if (!(model && isModelInScope(model, ctx.scopedModels))) {
 			continue;
 		}
 		const auth = await ctx.modelRegistry.getApiKeyAndHeaders(model);
 		if (auth.ok) {
-			return { model, auth, usedFallback: false };
+			return { model, usedFallback: false };
 		}
 	}
 
@@ -75,6 +74,12 @@ export async function selectExtractionModel(
 		return {
 			error:
 				"No available extraction model. Configure answer.extractionModels or select a chat model.",
+		};
+	}
+	if (!isModelInScope(ctx.model, ctx.scopedModels)) {
+		return {
+			error:
+				"No available extraction model in the current session model scope.",
 		};
 	}
 
@@ -85,14 +90,24 @@ export async function selectExtractionModel(
 		};
 	}
 
-	return { model: ctx.model, auth, usedFallback: true };
+	return { model: ctx.model, usedFallback: true };
+}
+
+function isModelInScope(
+	model: Model<Api>,
+	scopedModels: ExtensionContext["scopedModels"]
+): boolean {
+	return (
+		scopedModels.length === 0 ||
+		scopedModels.some((scoped) => modelsAreEqual(scoped.model, model))
+	);
 }
 
 export async function extractAskParams(options: {
 	assistantText: string;
 	previousUserText?: string;
 	model: Model<Api>;
-	auth: { apiKey?: string; headers?: Record<string, string> };
+	complete: ExtensionContext["modelRegistry"]["complete"];
 	retries: number;
 	signal?: AbortSignal;
 	timeoutMs: number;
@@ -141,7 +156,7 @@ async function runExtractionAttempt(options: {
 	assistantText: string;
 	previousUserText?: string;
 	attempt: number;
-	auth: { apiKey?: string; headers?: Record<string, string> };
+	complete: ExtensionContext["modelRegistry"]["complete"];
 	lastError: string;
 	lastResponse: string;
 	model: Model<Api>;
@@ -157,14 +172,10 @@ async function runExtractionAttempt(options: {
 	const abortFromParent = () => controller.abort();
 	options.signal?.addEventListener("abort", abortFromParent, { once: true });
 	try {
-		const response = await complete(
+		const response = await options.complete(
 			options.model,
 			createExtractionContext(options),
-			{
-				apiKey: options.auth.apiKey,
-				headers: options.auth.headers,
-				signal: controller.signal,
-			}
+			{ signal: controller.signal }
 		);
 		if (response.stopReason === "aborted") {
 			throw new Error(
