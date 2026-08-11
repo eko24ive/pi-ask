@@ -3,7 +3,7 @@
 # @eko24ive/pi-ask
 
 [![npm downloads](https://badgen.net/npm/dm/@eko24ive/pi-ask)](https://www.npmjs.com/package/@eko24ive/pi-ask)
-[![last commit](https://badgen.net/github/last-commit/eko24ive/pi-ask?v=bbb7017)](https://github.com/eko24ive/pi-ask/commits/main)
+[![last commit](https://badgen.net/github/last-commit/eko24ive/pi-ask?v=0145055)](https://github.com/eko24ive/pi-ask/commits/main)
 [![stars](https://badgen.net/github/stars/eko24ive/pi-ask)](https://github.com/eko24ive/pi-ask/stargazers)
 
 > [!IMPORTANT]
@@ -60,6 +60,7 @@ Once installed, this package gives the agent a native way to ask for clarificati
   - `/answer` extracts questions from the latest assistant message into an ask flow
   - `/answer:again` reopens the latest `/answer` form on the current branch
   - `/ask:replay` replays the latest real `ask_user` form on the current branch
+- 🛟 Automatic recovery of an unanswered `ask_user` form after startup, resume, or fork
 - 🗣️ You can talk to your agent to configure pi-ask; it will read the bundled configuration guide and tailor the config for you
 
 ## Feature walkthrough
@@ -209,6 +210,12 @@ Replay commands are branch-aware. They read persisted entries from the current p
 - `/ask:replay` reopens the latest real `ask_user` form on this branch
 
 Cancellation is local to the UI: closing a replayed form does not start a new agent turn. Submitted answers are sent back as a normal user follow-up message.
+
+### Interrupted ask forms
+
+If Pi stops while an `ask_user` form is open, the tool call remains without a result. Starting, resuming, or forking that session reopens the newest unanswered form once. Submitting sends the result as a user message because the original tool execution no longer exists. Cancelling dismisses the automatic recovery. Either outcome prevents another automatic reopen, while `/ask:replay` remains available.
+
+New sessions and extension reloads do not trigger recovery.
 
 Kudos to [@k0valik](https://github.com/k0valik) for the `/answer` idea.
 

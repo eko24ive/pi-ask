@@ -6,6 +6,7 @@ import { registerAskSettingsCommand } from "./ask-settings-command.ts";
 import { registerAskTool } from "./ask-tool.ts";
 import { resetAskConfigStore } from "./config/store.ts";
 import { createRemoteAskRuntime } from "./remote-ask.ts";
+import { registerPendingAskResume } from "./resume-pending-ask.ts";
 
 const PACKAGE_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const CONFIGURATION_DOC_PATH = resolve(
@@ -27,4 +28,5 @@ export default function askExtension(pi: ExtensionAPI) {
 	registerAskTool(pi, remoteAsk);
 	registerAskSettingsCommand(pi);
 	registerAnswerCommands(pi, remoteAsk);
+	registerPendingAskResume(pi, remoteAsk);
 }

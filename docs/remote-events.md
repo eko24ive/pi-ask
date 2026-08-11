@@ -25,14 +25,14 @@ type PiAskStartedEvent = {
   version: 1;
   flowId: string;
   toolCallId?: string;
-  source: "tool" | "answer" | "answer:again" | "ask:replay";
+  source: "tool" | "answer" | "answer:again" | "ask:replay" | "ask:resume";
   title?: string;
   questions: AskQuestion[];
   createdAt: number;
 };
 ```
 
-Use `flowId` for submit/correlation. Use `questions[].id` and `questions[].options[].value` for answers.
+Use `flowId` for submit/correlation. Use `questions[].id` and `questions[].options[].value` for answers. `ask:resume` identifies a form recovered from an interrupted tool call.
 
 ## Submit an answer
 
@@ -111,7 +111,7 @@ type PiAskCompletedEvent = {
   version: 1;
   flowId: string;
   toolCallId?: string;
-  source: "tool" | "answer" | "answer:again" | "ask:replay";
+  source: "tool" | "answer" | "answer:again" | "ask:replay" | "ask:resume";
   result: AskResult;
   completedAt: number;
 };

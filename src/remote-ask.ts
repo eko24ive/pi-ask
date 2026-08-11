@@ -12,7 +12,12 @@ export const PI_ASK_COMPLETED_EVENT = "@eko24ive/pi-ask:completed";
 export const PI_ASK_SUBMIT_EVENT = "@eko24ive/pi-ask:submit";
 export const PI_ASK_SUBMIT_RESULT_EVENT = "@eko24ive/pi-ask:submit-result";
 
-export type RemoteAskSource = "tool" | "answer" | "answer:again" | "ask:replay";
+export type RemoteAskSource =
+	| "tool"
+	| "answer"
+	| "answer:again"
+	| "ask:replay"
+	| "ask:resume";
 
 export interface RemoteAskAnswer {
 	customText?: string;

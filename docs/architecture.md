@@ -18,6 +18,8 @@ The codebase is split so the implementation reads through file boundaries and na
 - `src/answer-commands.ts` — `/answer`, `/answer:again`, and `/ask:replay` command wiring
 - `src/answer-extraction.ts` — configured extraction model selection, synthetic `ask_user` tool-call extraction, and tolerant text fallback
 - `src/ask-payload-store.ts` — branch-aware persisted ask payload lookup
+- `src/pending-ask.ts` — active-branch unresolved tool-call detection and recovery dismissal persistence
+- `src/resume-pending-ask.ts` — detached lifecycle wiring and recovered answer delivery
 - `src/notifications.ts` — best-effort ask notification payload rendering and channel execution
 - `src/remote-ask.ts` — package-prefixed local event contract, active-flow registry, and explicit remote submission validation
 - `src/schema.ts` — TypeBox schema
@@ -78,6 +80,9 @@ The codebase is split so the implementation reads through file boundaries and na
 - persisted ask settings are migrated to the current schema version in memory, validated, and normalized before use without rewriting the config file on load
 - config schema migrations preserve user-provided values and add new defaults only when fields are absent
 - replay payload lookup scans only the current session branch and revalidates payloads before use
+- interrupted-ask recovery selects only the newest unresolved `ask_user` call on the active branch, prefers its valid persisted payload, and validates original arguments as fallback
+- recovered forms open only for TUI `startup`, `resume`, and `fork` events; the flow stays detached from the lifecycle handler
+- recovered submit and cancel both persist dismissal before the same call can reopen; manual `/ask:replay` ignores that recovery marker
 - invalid persisted keymaps fall back to default keymaps for the current session without discarding valid behaviour, notification, or answer settings
 - invalid notification channels are skipped and fall back to the default bell channel if none are valid
 - ask settings behaviour and notification enabled changes attempt to persist immediately from the settings list; save failures revert the change and show an error; config reset is guarded by a short double-press confirmation

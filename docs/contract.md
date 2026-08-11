@@ -213,6 +213,7 @@ This document defines the stable external behavior. It does not explain internal
 - `/answer` extraction may use an internal `freeform: true` option for open-ended questions with no explicit choices; these render as user-input-only questions with the label `Type your answer:`, no numbered option row, and no selection caret; this marker is not part of the public `ask_user` tool contract
 - `/answer:again` command to replay the latest `/answer`-extracted form on the current branch
 - `/ask:replay` command to replay the latest real `ask_user` form on the current branch
+- automatic recovery of the newest unresolved `ask_user` form on startup, resume, or fork
 - ask settings list with binary behaviour/notification toggles and a guarded reset-to-defaults action
 - `?` in the ask flow and `/ask-settings` in pi open the same lightweight ask settings overlay
 - settings attempt to persist immediately when changed: `Auto-submit when answered without notes`, `Confirm dismiss when dirty`, `Double-press review shortcuts`, `Notifications`, and `Show footer hints`; `Present single-select as multi-select` persists immediately when saving succeeds but applies only to new/replayed ask flows; save failures revert the setting and show a manual-edit message; resetting config to defaults requires pressing the reset action twice within a short confirmation window
@@ -294,6 +295,16 @@ See [`remote-events.md`](remote-events.md) for payload shapes, examples, and a l
 - command-flow cancellation closes with a notification and does not send a message to the agent
 - submitted or elaborated command-flow results are sent back with user-message semantics
 - replay commands scan only `ctx.sessionManager.getBranch()`, ignore sibling/future branch payloads, and revalidate stored payloads before opening the UI
+
+## Interrupted ask resume
+
+- on `session_start` with reason `startup`, `resume`, or `fork`, pi-ask finds the newest `ask_user` tool call on the active branch that has neither a tool result nor an `ask:pending-dismissed` entry
+- recovery does not run for `new`, `reload`, or non-TUI sessions
+- the matching valid `ask:payload` supplies the form; if it is missing or invalid, pi-ask validates and uses the original tool call arguments instead
+- the recovery flow is detached from `session_start`, so an open form does not block other lifecycle handlers
+- because the interrupted `execute` promise no longer exists, submit sends the result with the same user-message semantics as replay commands
+- submit and cancel both append `ask:pending-dismissed`, which prevents another automatic reopen; `/ask:replay` still works
+- recovered flows emit remote lifecycle events with source `ask:resume`
 
 The fallback message includes normalized pending questions and options so the caller can re-ask them manually. `details.questions` still contains normalized question metadata, while `details.answers` stays empty until a user responds.
 
