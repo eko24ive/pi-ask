@@ -165,7 +165,7 @@ This document defines the stable external behavior. It does not explain internal
 - semantically invalid payloads that reach tool execution return `error.kind === "invalid_input"` with structured `issues` and a transcript-friendly `Invalid ask_user payload:` message; their rendered status is `Invalid tool payload`
 - payloads missing schema-required fields fail Pi's schema validation before tool execution and use Pi's standard tool-error result without structured `details`
 - `mode: "submit"` is normal completion; `mode: "elaborate"` means the user asked the agent to continue with follow-up clarification based on notes
-- unanswered questions are omitted from `answers`
+- unanswered questions are omitted from `answers`, but non-cancelled submitted result text includes `<label>: (no answer)` in summary mode and `? <label>: (no answer)` in transcript rendering
 - in `mode: "elaborate"`, `answers` contains only committed answers; note-only entries move to `elaboration.items`
 - `continuation.strategy === "refine_only"` means the next ask should refine the current flow rather than restart it
 - `continuation.preservedAnswers` contains previously committed answers that should be kept as context and not re-asked

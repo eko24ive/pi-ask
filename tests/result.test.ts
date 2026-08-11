@@ -5,6 +5,7 @@ import { createInitialState } from "../src/state/create.ts";
 import { summarizeResult, toAskResult } from "../src/state/result.ts";
 import {
 	applyNumberShortcut,
+	confirmCurrentSelection,
 	enterOptionNoteMode,
 	enterQuestionNoteMode,
 	moveOption,
@@ -34,6 +35,71 @@ test("summarizeResult formats selected answers", () => {
 
 	assert.equal(summarizeResult(result), "Style: Rich");
 	assert.equal(renderResultText(result), "✓ Style: Rich");
+});
+
+test("submitted results surface unanswered questions without serializing answers", () => {
+	let state = createInitialState({
+		questions: [
+			{
+				id: "architecture",
+				label: "Architecture",
+				prompt: "How should we wire secrets?",
+				options: [{ value: "encrypted", label: "Encrypted" }],
+			},
+			{
+				id: "sources",
+				label: "Secret sources",
+				prompt: "Where do secrets come from?",
+				type: "multi",
+				options: [{ value: "env", label: ".env file" }],
+			},
+		],
+	});
+
+	state = applyNumberShortcut(state, 1);
+	state = confirmCurrentSelection(state);
+	state = confirmCurrentSelection(state);
+	const result = toAskResult(state);
+
+	assert.equal(result.answers.sources, undefined);
+	assert.equal(
+		summarizeResult(result),
+		"Architecture: Encrypted\nSecret sources: (no answer)"
+	);
+	assert.equal(
+		renderResultText(result),
+		"✓ Architecture: Encrypted\n? Secret sources: (no answer)"
+	);
+});
+
+test("submitted results surface every question when all are unanswered", () => {
+	const result = {
+		cancelled: false,
+		mode: "submit" as const,
+		questions: [
+			{
+				id: "scope",
+				label: "Scope",
+				prompt: "What scope?",
+				type: "single" as const,
+			},
+			{
+				id: "tests",
+				label: "Tests",
+				prompt: "Which tests?",
+				type: "multi" as const,
+			},
+		],
+		answers: {},
+	};
+	assert.equal(
+		summarizeResult(result),
+		"Scope: (no answer)\nTests: (no answer)"
+	);
+	assert.equal(
+		renderResultText(result),
+		"? Scope: (no answer)\n? Tests: (no answer)"
+	);
 });
 
 test("single questions presented as multi preserve requested type in results", () => {
@@ -584,14 +650,22 @@ test("invalid tool payload result is attributed to the tool call", () => {
 	assert.equal(renderResultText(result), "Invalid tool payload");
 });
 
-test("cancelled result renders as cancelled", () => {
+test("cancelled result hides unanswered questions", () => {
 	const result = {
 		title: "Interview",
 		cancelled: true,
 		mode: "submit" as const,
-		questions: [],
+		questions: [
+			{
+				id: "scope",
+				label: "Scope",
+				prompt: "What scope?",
+				type: "single" as const,
+			},
+		],
 		answers: {},
 	};
 
+	assert.equal(summarizeResult(result), "User cancelled the ask flow");
 	assert.equal(renderResultText(result), "Cancelled");
 });

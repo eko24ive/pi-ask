@@ -13,6 +13,7 @@ export function formatResultLines(
 	for (const question of result.questions) {
 		const answer = result.answers[question.id];
 		if (!answer) {
+			lines.push(formatUnansweredLine(question.label, options.mode));
 			continue;
 		}
 
@@ -42,6 +43,15 @@ export function formatResultLines(
 	}
 
 	return lines;
+}
+
+function formatUnansweredLine(
+	questionLabel: string,
+	mode: "summary" | "render"
+): string {
+	return mode === "summary"
+		? `${questionLabel}: (no answer)`
+		: `? ${questionLabel}: (no answer)`;
 }
 
 function formatAnswerLine(
