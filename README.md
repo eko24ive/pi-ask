@@ -3,7 +3,7 @@
 # @eko24ive/pi-ask
 
 [![npm downloads](https://badgen.net/npm/dm/@eko24ive/pi-ask)](https://www.npmjs.com/package/@eko24ive/pi-ask)
-[![last commit](https://badgen.net/github/last-commit/eko24ive/pi-ask?v=0145055)](https://github.com/eko24ive/pi-ask/commits/main)
+[![last commit](https://badgen.net/github/last-commit/eko24ive/pi-ask?v=6fef4ac)](https://github.com/eko24ive/pi-ask/commits/main)
 [![stars](https://badgen.net/github/stars/eko24ive/pi-ask)](https://github.com/eko24ive/pi-ask/stargazers)
 
 > [!IMPORTANT]
@@ -48,6 +48,7 @@ pi -e npm:@eko24ive/pi-ask
 Once installed, this package gives the agent a native way to ask for clarification instead of guessing.
 
 - 🧭 Familiar ask-style interface: tabbed questions, single/multi select, and preview mode
+- ⭐ Optional warning-colored `(recommended)` markers that do not preselect answers
 - ✍️ Inline free-form `Type your own` answers
 - 📎 Native pi-style `@` file references inside answer and note editors
 - 📝 Question-level and option-level notes
@@ -198,7 +199,7 @@ Accepted notation follows pi-tui key ids. Common aliases are normalized, for exa
 
 After installation, the extension registers the `ask_user` tool plus `/ask-settings`, `/answer`, `/answer:again`, and `/ask:replay` commands.
 
-Agents can auto-discover and call `ask_user` when they need clarification instead of guessing. In interactive sessions, it opens a terminal UI flow for structured answers, supports native pi-style `@` file references while typing answers or notes, and returns normalized answers back to the agent. Ask settings are available both from `?` in the ask flow and from the `/ask-settings` command. Behaviour and notification settings are binary `on`/`off` toggles that save immediately when the config file is writable; save failures revert the toggle and show a manual-edit message. The settings overlay includes a guarded double-press reset-to-defaults action; keymaps, notification channels, and extraction settings are changed by editing the shown config file path.
+Agents can auto-discover and call `ask_user` when they need clarification instead of guessing. They can mark any number of grounded preferences with `recommended: true` and use option descriptions for reasons. In interactive sessions, it opens a terminal UI flow for structured answers, supports native pi-style `@` file references while typing answers or notes, and returns normalized answers back to the agent. Ask settings are available both from `?` in the ask flow and from the `/ask-settings` command. Behaviour and notification settings are binary `on`/`off` toggles that save immediately when the config file is writable; save failures revert the toggle and show a manual-edit message. The settings overlay includes a guarded double-press reset-to-defaults action; keymaps, notification channels, and extraction settings are changed by editing the shown config file path.
 
 ### Answer and replay commands
 

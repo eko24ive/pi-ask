@@ -311,16 +311,23 @@ export function mergeColumns(
 }
 
 export function measurePreviewLeftWidth(
-	options: Array<{ label: string; description?: string }>,
+	options: Array<{
+		description?: string;
+		label: string;
+		recommended?: boolean;
+	}>,
 	width: number
 ): number {
 	let widest = 0;
 	for (let index = 0; index < options.length; index++) {
 		const option = options[index];
+		const description = option.recommended
+			? `${UI_TEXT.recommendedMarker}${option.description ? ` | ${option.description}` : ""}`
+			: option.description;
 		widest = Math.max(
 			widest,
 			visibleWidth(`${index + 1}. ${option.label}`),
-			option.description ? visibleWidth(option.description) : 0
+			description ? visibleWidth(description) : 0
 		);
 	}
 

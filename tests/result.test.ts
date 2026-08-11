@@ -634,6 +634,29 @@ test("elaborate continuation preserves unrelated committed answers", () => {
 	});
 });
 
+test("elaboration preserves recommendation metadata", () => {
+	let state = createInitialState({
+		questions: [
+			{
+				id: "framework",
+				label: "Framework",
+				prompt: "Pick a framework",
+				options: [{ value: "react", label: "React", recommended: true }],
+			},
+		],
+	});
+	state = enterOptionNoteMode(state, "framework", "react");
+	state = saveNote(state, "Explain this preference");
+	state = { ...state, mode: "elaborate" };
+
+	const item = toAskResult(state).elaboration?.items[0];
+	assert.equal(item?.question.options[0]?.recommended, true);
+	assert.equal(
+		item && "option" in item ? item.option.recommended : undefined,
+		true
+	);
+});
+
 test("invalid tool payload result is attributed to the tool call", () => {
 	const result = {
 		title: "Interview",

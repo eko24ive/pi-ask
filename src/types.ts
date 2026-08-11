@@ -5,6 +5,7 @@ export interface AskOption {
 	freeform?: boolean;
 	label: string;
 	preview?: string;
+	recommended?: boolean;
 	value: string;
 }
 

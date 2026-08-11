@@ -14,6 +14,7 @@ export const UI_DIMENSIONS = {
 } as const;
 
 export const UI_TEXT = {
+	recommendedMarker: "(recommended)",
 	questionNoteTitle: "Note:",
 	reviewTitle: "Review answers",
 	unanswered: "→ unanswered",

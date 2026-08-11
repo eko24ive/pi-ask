@@ -8,7 +8,7 @@ const params: AskParams = {
 		{
 			id: "goal",
 			prompt: "Goal?",
-			options: [{ value: "a", label: "A" }],
+			options: [{ value: "a", label: "A", recommended: true }],
 		},
 	],
 };

@@ -284,6 +284,28 @@ test("normalize treats blank optional presentation text as absent", () => {
 	});
 });
 
+test("normalization preserves any number of recommended options without selecting them", () => {
+	const state = createInitialState({
+		questions: [
+			{
+				id: "scope",
+				prompt: "What scope?",
+				options: [
+					{ value: "small", label: "Small", recommended: true },
+					{ value: "medium", label: "Medium", recommended: false },
+					{ value: "large", label: "Large", recommended: true },
+				],
+			},
+		],
+	});
+
+	assert.deepEqual(
+		state.questions[0].options.map((option) => option.recommended),
+		[true, false, true]
+	);
+	assert.deepEqual(state.answers, {});
+});
+
 test("single-select number shortcut stores answer and advances to next tab", () => {
 	let state = createInitialState(sampleParams());
 	state = applyNumberShortcut(state, 2);

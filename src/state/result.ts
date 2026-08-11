@@ -205,6 +205,9 @@ function cloneOption(option: AskState["questions"][number]["options"][number]) {
 		label: option.label,
 		...(option.description ? { description: option.description } : {}),
 		...(option.preview ? { preview: option.preview } : {}),
+		...(option.recommended === undefined
+			? {}
+			: { recommended: option.recommended }),
 	};
 }
 

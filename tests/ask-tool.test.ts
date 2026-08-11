@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { validateToolArguments } from "@earendil-works/pi-ai/base";
+import { Value } from "typebox/value";
 import { registerAskTool } from "../src/ask-tool.ts";
+import { AskOptionSchema } from "../src/schema.ts";
 import type { AskParams } from "../src/types.ts";
 
 const NON_INTERACTIVE_MESSAGE_RE =
@@ -41,6 +43,7 @@ function registerMockTool() {
 			execute: (...args: any[]) => Promise<any>;
 			parameters: Record<string, any>;
 			prepareArguments: (args: unknown) => unknown;
+			promptGuidelines: string[];
 			renderCall: (args: unknown, theme: any) => { text: string };
 			renderResult: (
 				result: any,
@@ -71,6 +74,27 @@ function sampleParams(): AskParams {
 		],
 	};
 }
+
+test("ask option schema and tool guidance support grounded recommendations", () => {
+	const { tool } = registerMockTool();
+
+	assert.equal(
+		Value.Check(AskOptionSchema, {
+			value: "small",
+			label: "Small",
+			description: "Lowest implementation risk",
+			recommended: true,
+		}),
+		true
+	);
+	assert(
+		tool.promptGuidelines.some(
+			(guideline) =>
+				guideline.includes("grounded preferences") &&
+				guideline.includes("description")
+		)
+	);
+});
 
 test("ask tool stores valid payloads as soon as they are called", async () => {
 	const { entries, tool } = registerMockTool();

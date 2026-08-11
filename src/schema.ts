@@ -19,6 +19,12 @@ export const AskOptionSchema = Type.Object({
 				"Optional preview content shown in the dedicated preview pane for preview questions",
 		})
 	),
+	recommended: Type.Optional(
+		Type.Boolean({
+			description:
+				"Optional presentation marker for a grounded preference; use the description to explain the reason",
+		})
+	),
 });
 
 export const AskQuestionSchema = Type.Object({

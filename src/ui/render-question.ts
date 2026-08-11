@@ -1,5 +1,9 @@
-import { truncateToWidth, visibleWidth } from "@earendil-works/pi-tui";
-import { UI_DIMENSIONS } from "../constants/ui.ts";
+import {
+	truncateToWidth,
+	visibleWidth,
+	wrapTextWithAnsi,
+} from "@earendil-works/pi-tui";
+import { UI_DIMENSIONS, UI_TEXT } from "../constants/ui.ts";
 import {
 	measurePreviewLeftWidth,
 	mergeColumns,
@@ -83,7 +87,13 @@ function renderStandardOption(
 		row.pointer,
 		" ".repeat(visibleWidth(row.pointer))
 	);
-	renderOptionDescription(lines, row.description, context.width, context.theme);
+	renderOptionSubtitle(
+		lines,
+		row.description,
+		row.recommended,
+		context.width,
+		context.theme
+	);
 	renderOptionDetail(lines, row.detail, context, {
 		suppressLeadingGap: !!row.description,
 	});
@@ -170,7 +180,7 @@ function renderPreviewOptionList(
 			row.pointer,
 			"  "
 		);
-		renderOptionDescription(lines, row.description, width, theme);
+		renderOptionSubtitle(lines, row.description, row.recommended, width, theme);
 	}
 	return lines;
 }
@@ -275,14 +285,36 @@ function renderInteractiveCustomOption(
 	});
 }
 
-function renderOptionDescription(
+function renderOptionSubtitle(
 	lines: string[],
 	description: string | undefined,
+	recommended: boolean,
 	width: number,
 	theme: Theme
 ) {
-	if (!description) {
+	if (!recommended) {
+		if (description) {
+			pushWrappedText(
+				lines,
+				description,
+				width,
+				theme,
+				"muted",
+				"     ",
+				"     "
+			);
+		}
 		return;
 	}
-	pushWrappedText(lines, description, width, theme, "muted", "     ", "     ");
+
+	const indent = "     ";
+	const text =
+		theme.fg("warning", UI_TEXT.recommendedMarker) +
+		(description ? theme.fg("muted", ` | ${description}`) : "");
+	for (const line of wrapTextWithAnsi(
+		text,
+		Math.max(1, width - visibleWidth(indent))
+	)) {
+		lines.push(truncateToWidth(`${indent}${line}`, width));
+	}
 }

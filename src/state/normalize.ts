@@ -112,6 +112,9 @@ function normalizeOption(option: AskOption): AskOption {
 		label: option.label.trim(),
 		description: option.description?.trim() || undefined,
 		preview: option.preview?.trim() || undefined,
+		...(option.recommended === undefined
+			? {}
+			: { recommended: option.recommended }),
 		...(option.freeform ? { freeform: true } : {}),
 	};
 }

@@ -30,6 +30,7 @@ export interface OptionRowModel {
 	label: string;
 	pointer: string;
 	prefix: string;
+	recommended: boolean;
 	selected: boolean;
 }
 
@@ -104,6 +105,7 @@ function buildOptionRowModel(
 		label: option.label,
 		pointer,
 		prefix: getOptionPrefix(question.type, option, answered),
+		recommended: option.recommended === true,
 		selected,
 	};
 }

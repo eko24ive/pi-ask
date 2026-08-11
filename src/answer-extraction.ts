@@ -39,6 +39,7 @@ Rules:
 - Never mix a freeform option with normal options.
 - Do not create an option that merely restates the question.
 - Include descriptions only when helpful.
+- Never add recommendation metadata.
 - If there are no questions, call ask_user with {"questions":[]}.`;
 
 interface ExtractionPromptOptions {

@@ -20,6 +20,7 @@ This document defines the stable external behavior. It does not explain internal
       label: string;
       description?: string;
       preview?: string;
+      recommended?: boolean;
     }>;
   }>;
 }
@@ -35,6 +36,8 @@ This document defines the stable external behavior. It does not explain internal
 - blank optional `title`, question `label`, option `description`, and option `preview` fields are treated as omitted
 - question `label` falls back to `Q1`, `Q2`, ...
 - option `label` is required in the public schema; before schema validation, a missing or blank string label is derived from a non-empty `value` by replacing hyphens and underscores with spaces and capitalizing the first character
+- `recommended` is optional presentation metadata; zero, one, or multiple options may set it to `true`
+- recommended options render warning-colored `(recommended)` followed by muted ` | <description>`, or only `(recommended)` when no description exists, but are not preselected
 - `type` defaults to `single`
 - `required` defaults to `false`
 - `required` is metadata only; it never blocks submission
@@ -107,6 +110,7 @@ This document defines the stable external behavior. It does not explain internal
                 label: string;
                 description?: string;
                 preview?: string;
+                recommended?: boolean;
               }>;
             };
             answered: boolean;
@@ -133,6 +137,7 @@ This document defines the stable external behavior. It does not explain internal
                 label: string;
                 description?: string;
                 preview?: string;
+                recommended?: boolean;
               }>;
             };
             option: {
@@ -140,6 +145,7 @@ This document defines the stable external behavior. It does not explain internal
               label: string;
               description?: string;
               preview?: string;
+              recommended?: boolean;
             };
             selected: boolean;
             answered: boolean;
@@ -172,6 +178,7 @@ This document defines the stable external behavior. It does not explain internal
 - `continuation.affectedQuestionIds` lists the only questions that should be revisited
 - `continuation.questionStates` marks each question as `answered`, `needs_clarification`, or `unanswered`
 - single-select answers still use arrays
+- recommendation markers never change canonical submitted labels or values
 - when `behaviour.presentSingleAsMulti` is enabled, requested single-select questions are presented and handled as multi-select in future/replayed ask flows; result question metadata keeps the requested `type`, adds `presentedType` when final presentation differs, and result text uses one compact note when any answered questions were presented differently
 - `indices` are 1-based rendered option positions
 - `customText` stores the free-form answer
@@ -199,6 +206,7 @@ This document defines the stable external behavior. It does not explain internal
 
 - tabbed multi-question flow
 - single-select, multi-select, and preview questions
+- optional warning-colored recommendation subtitles in standard and preview option lists without automatic selection
 - active question type changes via configurable `main.changeQuestionType` hotkey, default `t`; non-preview questions toggle `single <-> multi`; preview questions toggle `preview <-> multi`
 - inline free-form answers for all question types
 - native pi-style `@` file path autocomplete inside free-form answer and note editors

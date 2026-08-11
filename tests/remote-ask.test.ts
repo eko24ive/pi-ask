@@ -152,7 +152,7 @@ test("started event questions are cloned", async () => {
 			{
 				id: "decision",
 				prompt: "Proceed?",
-				options: [{ value: "yes", label: "Yes" }],
+				options: [{ value: "yes", label: "Yes", recommended: true }],
 			},
 		],
 	}).questions;
@@ -167,9 +167,12 @@ test("started event questions are cloned", async () => {
 	const started = bus.events.find(
 		(event) => event.channel === PI_ASK_STARTED_EVENT
 	)?.data as RemoteAskStartedEvent;
+	assert.equal(started.questions[0].options[0].recommended, true);
 	started.questions[0].options[0].label = "Mutated";
+	started.questions[0].options[0].recommended = false;
 
 	assert.equal(questions[0].options[0].label, "Yes");
+	assert.equal(questions[0].options[0].recommended, true);
 });
 
 test("remote runtime disposes active flows and submit listener", () => {

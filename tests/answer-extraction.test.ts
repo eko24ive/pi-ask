@@ -139,6 +139,10 @@ test("extraction context includes the tool and preceding turn", () => {
 
 	assert.equal(context.tools?.[0]?.name, "ask_user");
 	assert.equal(context.tools?.length, 1);
+	assert.equal(
+		(context.systemPrompt ?? "").includes("Never add recommendation metadata."),
+		true
+	);
 	const prompt = JSON.stringify(context.messages[0]?.content);
 	assert.equal(prompt.includes("Choose an implementation direction."), true);
 	assert.equal(prompt.includes("Which direction: A or B?"), true);
