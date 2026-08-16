@@ -1,3 +1,18 @@
+# [1.2.0](https://github.com/eko24ive/pi-ask/compare/v1.1.0...v1.2.0) (2026-08-16)
+
+
+### Bug Fixes
+
+* align ask_user payload validation ([852e625](https://github.com/eko24ive/pi-ask/commit/852e625d86fdaac27e3774c5a8101abd4345700a))
+* restore pending asks after resume ([4de596a](https://github.com/eko24ive/pi-ask/commit/4de596ae540088663e94690c20d85c29c7f02d20))
+* surface unanswered ask_user questions ([ce230db](https://github.com/eko24ive/pi-ask/commit/ce230db275cb36685598997287801570ae538781))
+
+
+### Features
+
+* mark recommended ask options ([bd5f452](https://github.com/eko24ive/pi-ask/commit/bd5f4520a356c643eef5d3da2ac76bf56b9d46b4))
+* use tool calls for answer extraction ([0145055](https://github.com/eko24ive/pi-ask/commit/0145055445eaca53531dd8c460379dddebd66534))
+
 # [1.1.0](https://github.com/eko24ive/pi-ask/compare/v1.0.2...v1.1.0) (2026-06-22)
 
 
